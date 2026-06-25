@@ -1,202 +1,349 @@
 <!DOCTYPE html>
 <html lang="mn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Намайг уучлаарай... 🥺</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Намайг уучлаарай... 🥺</title>
+<style>
+  :root{
+    --pink-1:#ffe3ec;
+    --pink-2:#ffc2d6;
+    --rose:#ff4d6d;
+    --rose-deep:#bd3b4e;
+    --cream:#fff8f5;
+    --ink:#5c2436;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(135deg,var(--pink-1) 0%,var(--pink-2) 60%,#ffb3c6 100%);
+    background-size:200% 200%;
+    animation:bgShift 12s ease-in-out infinite;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    position:relative;
+  }
+  @keyframes bgShift{
+    0%,100%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+  }
 
-        body {
-            background: linear-gradient(135deg, #ffe5ec 0%, #ffc2d1 100%);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
+  /* ambient floating hearts in background */
+  .ambient-heart{
+    position:fixed;
+    bottom:-40px;
+    color:rgba(255,77,109,0.25);
+    font-size:18px;
+    animation:floatAmbient linear infinite;
+    pointer-events:none;
+    z-index:1;
+  }
+  @keyframes floatAmbient{
+    0%{transform:translateY(0) translateX(0) rotate(0deg);opacity:0;}
+    10%{opacity:1;}
+    100%{transform:translateY(-110vh) translateX(20px) rotate(360deg);opacity:0;}
+  }
 
-        .card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 40px 30px;
-            width: 360px;
-            text-align: center;
-            box-shadow: 0 15px 35px rgba(226, 59, 78, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            position: relative;
-            animation: fadeIn 0.8s ease-out;
-        }
+  .stage{
+    position:relative;
+    width:100%;
+    max-width:420px;
+    height:min(560px, 92vh);
+    margin:0 16px;
+  }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+  .card{
+    position:absolute;
+    inset:0;
+    background:rgba(255,255,255,0.82);
+    backdrop-filter:blur(14px);
+    border-radius:28px;
+    padding:36px 28px 32px;
+    text-align:center;
+    box-shadow:0 20px 45px rgba(189,59,78,0.22), inset 0 0 0 1.5px rgba(255,255,255,0.6);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-between;
+    animation:cardIn 0.7s cubic-bezier(.2,.9,.3,1.2);
+  }
+  @keyframes cardIn{
+    from{opacity:0;transform:translateY(24px) scale(.96);}
+    to{opacity:1;transform:translateY(0) scale(1);}
+  }
 
-        h1 {
-            color: #bd3b4e;
-            font-size: 24px;
-            margin-bottom: 15px;
-            font-weight: 700;
-            line-height: 1.3;
-        }
+  h1{
+    color:var(--rose-deep);
+    font-size:22px;
+    line-height:1.4;
+    font-weight:800;
+    letter-spacing:-0.2px;
+    min-height:62px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
 
-        .gif-container {
-            width: 100%;
-            height: 160px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 25px;
-        }
+  .face-wrap{
+    width:180px;
+    height:180px;
+    margin:8px 0 4px;
+  }
+  .face-wrap svg{
+    width:100%;
+    height:100%;
+    overflow:visible;
+  }
 
-        .gif-img {
-            max-height: 100%;
-            border-radius: 16px;
-            animation: bounce 3s infinite ease-in-out;
-        }
+  .sub{
+    color:#9a5566;
+    font-size:13.5px;
+    margin-top:4px;
+    min-height:18px;
+  }
 
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
+  .btn-zone{
+    position:relative;
+    width:100%;
+    height:64px;
+    margin-top:8px;
+  }
 
-        .btn-group {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            height: 60px;
-            position: relative;
-        }
+  .btn{
+    position:absolute;
+    padding:13px 30px;
+    font-size:16px;
+    font-weight:700;
+    border:none;
+    border-radius:50px;
+    cursor:pointer;
+    transition:transform .18s ease, box-shadow .18s ease, background .2s ease;
+    box-shadow:0 6px 16px rgba(0,0,0,0.12);
+    white-space:nowrap;
+  }
 
-        .btn {
-            padding: 12px 30px;
-            font-size: 16px;
-            font-weight: 700;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
+  #yesBtn{
+    background:linear-gradient(45deg,#ff4d6d,#ff8fa3);
+    color:#fff;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    z-index:5;
+  }
+  #yesBtn:hover{ box-shadow:0 8px 22px rgba(255,77,109,0.45); }
+  #yesBtn:active{ transform:translate(-50%,-50%) scale(0.96); }
 
-        #yesBtn {
-            background: linear-gradient(45deg, #ff4d6d, #ff758f);
-            color: white;
-            z-index: 10;
-        }
+  #noBtn{
+    background:#f2eef0;
+    color:#7a5563;
+    top:50%;
+    left:calc(50% + 92px);
+    transform:translateY(-50%);
+    transition:left .28s cubic-bezier(.2,.8,.3,1.3), top .28s cubic-bezier(.2,.8,.3,1.3), transform .2s ease;
+    z-index:4;
+  }
 
-        #yesBtn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(255, 77, 109, 0.4);
-        }
+  .hint{
+    font-size:11.5px;
+    color:#b6798a;
+    margin-top:14px;
+    opacity:0.85;
+  }
 
-        #noBtn {
-            background-color: #f0f0f0;
-            color: #666;
-            position: absolute;
-            white-space: nowrap;
-        }
+  .heart{
+    position:fixed;
+    color:#ff4d6d;
+    pointer-events:none;
+    z-index:999;
+    animation:floatUp ease-out forwards;
+  }
+  @keyframes floatUp{
+    0%{transform:translateY(0) rotate(0deg) scale(1);opacity:1;}
+    100%{transform:translateY(-90vh) rotate(360deg) scale(1.3);opacity:0;}
+  }
 
-        /* Зүрхэн конфети эффект */
-        .heart {
-            position: absolute;
-            color: #ff4d6d;
-            font-size: 20px;
-            animation: floatUp 2s linear forwards;
-            pointer-events: none;
-            z-index: 999;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-        }
-    </style>
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001s !important; transition-duration:0.001s !important;}
+  }
+</style>
 </head>
 <body>
 
-    <div class="card">
-        <h1 id="titleText">Намайг уучлаарай, тэгэх үү? 🥺</h1>
-        
-        <div class="gif-container">
-            <img id="statusImg" class="gif-img" src="https://media.tenor.com/0v8Xm4Z4Wp8AAAAM/cute-cat.gif" alt="cute-cat">
-        </div>
-        
-        <div class="btn-group">
-            <button id="yesBtn" class="btn" onclick="sayYes()">ТИЙМ</button>
-            <button id="noBtn" class="btn" onmouseover="dodge()" onclick="dodge()">ҮГҮЙ</button>
-        </div>
+<div class="stage">
+  <div class="card">
+    <h1 id="titleText">Намайг уучлаарай, тэгэх үү? 🥺</h1>
+
+    <div class="face-wrap">
+      <svg id="faceSvg" viewBox="0 0 200 200">
+        <!-- ears -->
+        <path id="earL" d="M55 70 L30 20 L80 55 Z" fill="#ffb3c6" stroke="#bd3b4e" stroke-width="3" stroke-linejoin="round"/>
+        <path id="earR" d="M145 70 L170 20 L120 55 Z" fill="#ffb3c6" stroke="#bd3b4e" stroke-width="3" stroke-linejoin="round"/>
+        <!-- head -->
+        <circle cx="100" cy="105" r="65" fill="#fff0f4" stroke="#bd3b4e" stroke-width="3"/>
+        <!-- blush -->
+        <ellipse cx="65" cy="120" rx="11" ry="7" fill="#ffaec2" opacity="0.7"/>
+        <ellipse cx="135" cy="120" rx="11" ry="7" fill="#ffaec2" opacity="0.7"/>
+        <!-- eyes group: sad by default -->
+        <g id="eyeL">
+          <path d="M70 95 Q80 85 92 95" stroke="#5c2436" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </g>
+        <g id="eyeR">
+          <path d="M108 95 Q120 85 130 95" stroke="#5c2436" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </g>
+        <!-- tear -->
+        <path id="tear" d="M78 100 Q83 112 78 120 Q73 112 78 100 Z" fill="#9fd8ff" opacity="0.9"/>
+        <!-- mouth: sad -->
+        <path id="mouth" d="M82 138 Q100 128 118 138" stroke="#5c2436" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <!-- whiskers -->
+        <path d="M40 110 L15 105 M40 118 L13 120" stroke="#d99bab" stroke-width="2" stroke-linecap="round"/>
+        <path d="M160 110 L185 105 M160 118 L187 120" stroke="#d99bab" stroke-width="2" stroke-linecap="round"/>
+      </svg>
     </div>
 
-    <script>
-        const noBtn = document.getElementById('noBtn');
-        const yesBtn = document.getElementById('yesBtn');
-        const titleText = document.getElementById('titleText');
-        const statusImg = document.getElementById('statusImg');
-        
-        let yesScale = 1;
+    <div class="sub" id="subText">Чи намайг уучлах болов уу?</div>
 
-        // Эхлээд "ҮГҮЙ" товчийг "ТИЙМ" товчны баруун талд байрлуулна
-        window.onload = () => {
-            noBtn.style.left = "calc(50% + 10px)";
-        };
+    <div class="btn-zone">
+      <button id="yesBtn" class="btn">ТИЙМ</button>
+      <button id="noBtn" class="btn">ҮГҮЙ</button>
+    </div>
 
-        function dodge() {
-            // Карт дотор чөлөөтэй үсрэх координат
-            const maxX = 120; 
-            const minX = -150;
-            const maxY = 80;
-            const minY = -80;
+    <div class="hint" id="hintText">Тийм товч дээр дарж намайг баярлуул 💗</div>
+  </div>
+</div>
 
-            const randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
-            const randomY = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
-            
-            noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
-            
-            // Тийм товчийг томруулна
-            yesScale += 0.2;
-            yesBtn.style.transform = `scale(${yesScale})`;
-        }
+<script>
+const noBtn = document.getElementById('noBtn');
+const yesBtn = document.getElementById('yesBtn');
+const titleText = document.getElementById('titleText');
+const subText = document.getElementById('subText');
+const hintText = document.getElementById('hintText');
+const stage = document.querySelector('.stage');
+const tear = document.getElementById('tear');
+const mouth = document.getElementById('mouth');
+const eyeL = document.getElementById('eyeL');
+const eyeR = document.getElementById('eyeR');
 
-        function sayYes() {
-            titleText.innerText = "Яаая, баярлалаа! Хайртай шүү ❤️";
-            statusImg.src = "https://media.tenor.com/g9vK9NX6v8wAAAAM/mocha-bear-hearts.gif";
-            
-            // Үгүй товчийг устгах
-            noBtn.style.display = 'none';
-            yesBtn.style.transform = 'scale(1)';
-            yesBtn.innerText = "Үнсье 😚";
-            yesBtn.onclick = null; // Дахин дарахад юу ч болохгүй
-            
-            // Зүрхэн бороо оруулах
-            for(let i=0; i<30; i++) {
-                setTimeout(createHeart, i * 100);
-            }
-        }
+const sadLines = [
+  "Чи намайг уучлах болов уу?",
+  "Үнэхээр харамсаж байна шүү...",
+  "Нэг товч л дарчихъя, за?",
+  "Ши ши, бас оролдоод үз 🥹",
+  "Чи яг намайг уучлахаасаа татгалзаж байна уу?!"
+];
 
-        function createHeart() {
-            const heart = document.createElement('div');
-            heart.classList.add('heart');
-            heart.innerHTML = '❤️';
-            heart.style.left = Math.random() * 100 + 'vw';
-            heart.style.top = '100vh';
-            heart.style.fontSize = Math.random() * 20 + 15 + 'px';
-            heart.style.animationDuration = Math.random() * 1.5 + 1.5 + 's';
-            document.body.appendChild(heart);
-            
-            setTimeout(() => {
-                heart.remove();
-            }, 3000);
-        }
-    </script>
+let dodgeCount = 0;
+let yesScale = 1;
+
+// keep the "No" button inside the visible card area, and away from Yes
+function dodge(e){
+  e.preventDefault();
+  dodgeCount++;
+
+  const stageRect = stage.getBoundingClientRect();
+  const btnRect = noBtn.getBoundingClientRect();
+  const yesRect = yesBtn.getBoundingClientRect();
+
+  const margin = 18;
+  const maxLeft = stageRect.width - btnRect.width - margin;
+  const minLeft = margin;
+  const maxTop = stageRect.height - btnRect.height - margin - 70; // keep clear of hint text
+  const minTop = margin + 140; // keep clear of title/face
+
+  let newLeft, newTop, tries = 0;
+  do {
+    newLeft = Math.random() * (maxLeft - minLeft) + minLeft;
+    newTop = Math.random() * (maxTop - minTop) + minTop;
+    tries++;
+  } while (
+    tries < 12 &&
+    Math.abs((newLeft + btnRect.width/2) - (yesRect.left - stageRect.left + yesRect.width/2)) < 90 &&
+    Math.abs((newTop + btnRect.height/2) - (yesRect.top - stageRect.top + yesRect.height/2)) < 50
+  );
+
+  noBtn.style.left = newLeft + 'px';
+  noBtn.style.top = newTop + 'px';
+  noBtn.style.transform = 'translateY(0)';
+
+  // grow the yes button a little each time, capped
+  yesScale = Math.min(1 + dodgeCount * 0.08, 1.6);
+  yesBtn.style.transform = `translate(-50%,-50%) scale(${yesScale})`;
+
+  // update copy as the user keeps trying to say no
+  const lineIdx = Math.min(dodgeCount, sadLines.length - 1);
+  subText.textContent = sadLines[lineIdx];
+
+  if (dodgeCount === 1) {
+    setSadFace();
+  }
+  if (dodgeCount >= 4) {
+    hintText.textContent = "Тийм товчоос зайлсхийх газар үндсэндээ алга шүү 😼";
+  }
+}
+
+function setSadFace(){
+  tear.style.display = 'block';
+  mouth.setAttribute('d', 'M82 132 Q100 122 118 132');
+}
+
+function setHappyFace(){
+  tear.style.display = 'none';
+  mouth.setAttribute('d', 'M78 130 Q100 152 122 130');
+  eyeL.innerHTML = '<path d="M70 92 Q80 80 92 92" stroke="#5c2436" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  eyeR.innerHTML = '<path d="M108 92 Q120 80 130 92" stroke="#5c2436" stroke-width="4" fill="none" stroke-linecap="round"/>';
+}
+
+function sayYes(){
+  titleText.textContent = "Яаахав, баярлалаа! Хайртай шүү ❤️";
+  subText.textContent = "Чи хамгийн сайн хүн!";
+  hintText.textContent = "";
+  setHappyFace();
+
+  noBtn.style.display = 'none';
+  yesBtn.style.transform = 'translate(-50%,-50%) scale(1)';
+  yesBtn.textContent = "Үнсье 😚";
+  yesBtn.onclick = null;
+
+  for (let i = 0; i < 36; i++){
+    setTimeout(createHeart, i * 70);
+  }
+}
+
+function createHeart(){
+  const heart = document.createElement('div');
+  heart.classList.add('heart');
+  heart.textContent = ['❤️','💗','💕','💖'][Math.floor(Math.random()*4)];
+  heart.style.left = Math.random() * 100 + 'vw';
+  heart.style.top = '105vh';
+  heart.style.fontSize = (Math.random() * 18 + 14) + 'px';
+  heart.style.animationDuration = (Math.random() * 1.4 + 1.6) + 's';
+  document.body.appendChild(heart);
+  setTimeout(() => heart.remove(), 3200);
+}
+
+// ambient floating hearts in the background (gentle, low opacity)
+function spawnAmbient(){
+  const h = document.createElement('div');
+  h.classList.add('ambient-heart');
+  h.textContent = Math.random() > 0.5 ? '♥' : '♡';
+  h.style.left = Math.random() * 100 + 'vw';
+  h.style.animationDuration = (Math.random() * 6 + 8) + 's';
+  h.style.fontSize = (Math.random() * 14 + 12) + 'px';
+  document.body.appendChild(h);
+  setTimeout(() => h.remove(), 15000);
+}
+setInterval(spawnAmbient, 900);
+
+yesBtn.addEventListener('click', sayYes);
+noBtn.addEventListener('mouseover', dodge);
+noBtn.addEventListener('touchstart', dodge, {passive:false});
+noBtn.addEventListener('click', dodge);
+
+tear.style.display = 'none'; // hidden until first dodge, sad-eyes shown by default art already
+</script>
 
 </body>
 </html>
