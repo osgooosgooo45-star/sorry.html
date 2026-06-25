@@ -5,115 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Намайг уучлаарай... 🥺</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            background-color: #ffe6eb;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffe5ec 0%, #ffc2d1 100%);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
             overflow: hidden;
         }
 
-        .window {
-            background-color: #fff0f3;
-            border: 5px solid #d97b73;
-            border-radius: 12px;
-            width: 350px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 360px;
             text-align: center;
+            box-shadow: 0 15px 35px rgba(226, 59, 78, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             position: relative;
+            animation: fadeIn 0.8s ease-out;
         }
 
-        .titlebar {
-            background-color: #d97b73;
-            color: white;
-            padding: 8px 15px;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-        }
-
-        .window-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
-        .win-btn {
-            width: 12px;
-            height: 12px;
-            border: 1px solid white;
-            display: inline-block;
-            font-size: 9px;
-            line-height: 10px;
-            text-align: center;
-        }
-
-        .content {
-            padding: 30px 20px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         h1 {
             color: #bd3b4e;
-            font-size: 22px;
-            margin-bottom: 20px;
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            line-height: 1.3;
         }
 
-        .emoji-img {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 20px;
-        }
-
-        .btn-container {
+        .gif-container {
+            width: 100%;
+            height: 160px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .gif-img {
+            max-height: 100%;
+            border-radius: 16px;
+            animation: bounce 3s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             gap: 20px;
-            margin-top: 20px;
-            height: 50px;
+            height: 60px;
             position: relative;
         }
 
         .btn {
-            background-color: #e23b4e;
-            color: white;
-            border: none;
-            padding: 10px 25px;
+            padding: 12px 30px;
             font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
             cursor: pointer;
-            transition: transform 0.1s ease;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        #yesBtn {
+            background: linear-gradient(45deg, #ff4d6d, #ff758f);
+            color: white;
+            z-index: 10;
+        }
+
+        #yesBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 77, 109, 0.4);
         }
 
         #noBtn {
+            background-color: #f0f0f0;
+            color: #666;
             position: absolute;
+            white-space: nowrap;
+        }
+
+        /* Зүрхэн конфети эффект */
+        .heart {
+            position: absolute;
+            color: #ff4d6d;
+            font-size: 20px;
+            animation: floatUp 2s linear forwards;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-    <div class="window">
-        <div class="titlebar">
-            <span>УУЧЛАЛТ</span>
-            <div class="window-buttons">
-                <span class="win-btn">_</span>
-                <span class="win-btn">□</span>
-                <span class="win-btn">X</span>
-            </div>
+    <div class="card">
+        <h1 id="titleText">Намайг уучлаарай, тэгэх үү? 🥺</h1>
+        
+        <div class="gif-container">
+            <img id="statusImg" class="gif-img" src="https://media.tenor.com/0v8Xm4Z4Wp8AAAAM/cute-cat.gif" alt="cute-cat">
         </div>
         
-        <div class="content">
-            <h1 id="titleText">Намайг уучлаарай, тэгэх үү? 🥺</h1>
-            <img id="statusImg" class="emoji-img" src="https://media.tenor.com/0v8Xm4Z4Wp8AAAAM/cute-cat.gif" alt="cat">
-            
-            <div class="btn-container">
-                <button id="yesBtn" class="btn" onclick="sayYes()">ТИЙМ</button>
-                <button id="noBtn" class="btn" onmouseover="dodge()" onclick="dodge()">ҮГҮЙ</button>
-            </div>
+        <div class="btn-group">
+            <button id="yesBtn" class="btn" onclick="sayYes()">ТИЙМ</button>
+            <button id="noBtn" class="btn" onmouseover="dodge()" onclick="dodge()">ҮГҮЙ</button>
         </div>
     </div>
 
@@ -125,22 +144,57 @@
         
         let yesScale = 1;
 
+        // Эхлээд "ҮГҮЙ" товчийг "ТИЙМ" товчны баруун талд байрлуулна
+        window.onload = () => {
+            noBtn.style.left = "calc(50% + 10px)";
+        };
+
         function dodge() {
-            const x = Math.random() * 150 - 75;
-            const y = Math.random() * 100 - 50;
+            // Карт дотор чөлөөтэй үсрэх координат
+            const maxX = 120; 
+            const minX = -150;
+            const maxY = 80;
+            const minY = -80;
+
+            const randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+            const randomY = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
             
-            noBtn.style.transform = `translate(${x}px, ${y}px)`;
+            noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
             
-            yesScale += 0.15;
+            // Тийм товчийг томруулна
+            yesScale += 0.2;
             yesBtn.style.transform = `scale(${yesScale})`;
         }
 
         function sayYes() {
             titleText.innerText = "Яаая, баярлалаа! Хайртай шүү ❤️";
             statusImg.src = "https://media.tenor.com/g9vK9NX6v8wAAAAM/mocha-bear-hearts.gif";
+            
+            // Үгүй товчийг устгах
             noBtn.style.display = 'none';
             yesBtn.style.transform = 'scale(1)';
-            yesBtn.innerText = "Үнсвэл үнсье 😚";
+            yesBtn.innerText = "Үнсье 😚";
+            yesBtn.onclick = null; // Дахин дарахад юу ч болохгүй
+            
+            // Зүрхэн бороо оруулах
+            for(let i=0; i<30; i++) {
+                setTimeout(createHeart, i * 100);
+            }
+        }
+
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.top = '100vh';
+            heart.style.fontSize = Math.random() * 20 + 15 + 'px';
+            heart.style.animationDuration = Math.random() * 1.5 + 1.5 + 's';
+            document.body.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 3000);
         }
     </script>
 
