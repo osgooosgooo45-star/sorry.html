@@ -355,6 +355,7 @@
       <div class="photopicker-label" id="photopicker-label-text">Зураг нэмэх</div>
       <div id="player-mvp-badge" style="text-align:center;padding-bottom:14px;display:none;"></div>
       <div id="player-injury-risk" style="padding:0 16px 14px;display:none;"></div>
+      <div id="player-transfer-history" style="padding:0 16px 14px;display:none;"></div>
       <div class="section-head">REQUIRED</div>
       <div class="form-row" id="row-playernum">
         <div class="flbl">Player #</div>
@@ -560,7 +561,7 @@
     <div class="topbar">
       <button class="iconbtn" id="btn-back-league-detail"><span class="backchevron">‹</span></button>
       <div class="title" id="league-detail-title">League</div>
-      <div style="width:44px"></div>
+      <button class="iconbtn" id="btn-league-delete" style="color:var(--red);font-size:20px;">🗑</button>
     </div>
     <div style="display:flex;gap:10px;padding:10px 14px 0;">
       <div class="bigbtn" style="margin:0;flex:1;" id="btn-league-startmatch">Тоглолт эхлүүлэх</div>
@@ -854,6 +855,7 @@ function migrateDB(db){
     (t.players||[]).forEach(function(p){
       if(p.photo===undefined) p.photo = null;
       if(p.inactiveNote===undefined) p.inactiveNote = '';
+      if(p.transferHistory===undefined) p.transferHistory = null;
     });
   });
   (db.leagues||[]).forEach(function(l){ if(!l.fixtures) l.fixtures = []; });
@@ -887,7 +889,8 @@ function seedDB(){
     for(var i=0;i<t[1];i++){
       players.push({
         id: uid(), number: i+1, firstName: "", lastName: "", year:"",
-        position: positions[i % positions.length], status:"Active", photo:null, inactiveReason:null, inactiveNote:''
+        position: positions[i % positions.length], status:"Active", photo:null, inactiveReason:null, inactiveNote:'',
+        transferHistory: null
       });
     }
     return {id: uid(), name: t[0], players: players, color: TEAM_COLORS[ti % TEAM_COLORS.length], mmr:0, mmrWins:0, mmrLosses:0, logo:null};
@@ -1354,8 +1357,13 @@ function renderLeaguesList(){
   wrap.appendChild(summary);
 
   DB.leagues.forEach(function(lg){
+    var rowWrap = document.createElement('div');
+    rowWrap.style.display = 'flex';
+    rowWrap.style.alignItems = 'stretch';
+
     var row = document.createElement('div');
     row.className = 'list-row';
+    row.style.flex = '1';
     var isPvp = lg.format==='pvp';
     var isFinished = isPvp ? (lg.pvpBracket && lg.pvpBracket.champion) : (lg.playoff && lg.playoff.champion);
     var statusDot = '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+(isFinished?'var(--green)':'var(--blue)')+';margin-right:6px;"></span>';
@@ -1370,7 +1378,28 @@ function renderLeaguesList(){
       (lg.activeTeamIds.length+' баг үлдсэн / '+lg.teamIds.length+' нийт · 7 хоног '+lg.week+(isFinished?champName:''));
     row.innerHTML = '<div><div class="lname">'+statusDot+escapeHtml(lg.name)+'</div><div class="lsub">'+subText+'</div></div><div class="chev">›</div>';
     onTap(row, function(){ openLeagueDetail(lg.id); });
-    wrap.appendChild(row);
+
+    var delBtn = document.createElement('div');
+    delBtn.className = 'swipe-del';
+    delBtn.textContent = 'Устгах';
+    onTap(delBtn, function(e){
+      e && e.stopPropagation && e.stopPropagation();
+      deleteLeague(lg.id);
+    });
+
+    rowWrap.appendChild(row);
+    rowWrap.appendChild(delBtn);
+    wrap.appendChild(rowWrap);
+  });
+}
+function deleteLeague(leagueId){
+  var lg = DB.leagues.find(function(l){return l.id===leagueId;});
+  if(!lg) return;
+  customConfirm('"'+lg.name+'" лигийг бүрэн устгах уу? Энэ лигт хамаарах тоглолтын мэдээлэл хэвээр үлдэх ч лигийн бүтэц (grid, standings, playoff, fixtures) устана. Энэ үйлдлийг буцаах боломжгүй.', function(){
+    DB.leagues = DB.leagues.filter(function(l){return l.id!==leagueId;});
+    saveDB();
+    renderLeaguesList();
+    toast('Лиг устгагдсан');
   });
 }
 onTap(document.getElementById('btn-menu-leagues'), openSidebar);
@@ -1657,6 +1686,21 @@ onTap(document.getElementById('tab-league-standings'), function(){ leagueDetailT
 onTap(document.getElementById('tab-league-fixtures'), function(){ leagueDetailTab='fixtures'; renderLeagueDetail(); });
 onTap(document.getElementById('tab-league-players'), function(){ leagueDetailTab='players'; renderLeagueDetail(); });
 onTap(document.getElementById('btn-back-league-detail'), function(){ renderLeaguesList(); showScreen('screen-leagues'); });
+onTap(document.getElementById('btn-league-delete'), function(){
+  if(!currentLeagueId) return;
+  deleteLeagueAndGoBack(currentLeagueId);
+});
+function deleteLeagueAndGoBack(leagueId){
+  var lg = DB.leagues.find(function(l){return l.id===leagueId;});
+  if(!lg) return;
+  customConfirm('"'+lg.name+'" лигийг бүрэн устгах уу? Энэ үйлдлийг буцаах боломжгүй.', function(){
+    DB.leagues = DB.leagues.filter(function(l){return l.id!==leagueId;});
+    saveDB();
+    renderLeaguesList();
+    showScreen('screen-leagues');
+    toast('Лиг устгагдсан');
+  });
+}
 
 /* ---------- PVP BRACKET TAB ---------- */
 function renderPvpBracketTab(league){
@@ -2616,7 +2660,8 @@ onTap(document.getElementById('btn-back-teamdetail'), function(){
 onTap(document.getElementById('btn-add-player'), function(){
   var team = DB.teams.find(function(t){return t.id===currentTeamId;});
   var nextNum = (team.players.reduce(function(m,p){return Math.max(m,p.number);},-1))+1;
-  var p = {id:uid(), number:nextNum, firstName:'', lastName:'', year:'', position:'OH', status:'Active', photo:null, inactiveReason:null, inactiveNote:''};
+  var p = {id:uid(), number:nextNum, firstName:'', lastName:'', year:'', position:'OH', status:'Active', photo:null, inactiveReason:null, inactiveNote:'',
+    transferHistory: [{teamId:team.id, teamName:team.name, fromDate:new Date().toISOString(), toDate:null}]};
   team.players.push(p);
   saveDB();
   openPlayerInfo(team.id, p.id);
@@ -2668,7 +2713,8 @@ function toggleNumber(num, cellEl){
     team.players = team.players.filter(function(p){return p.id!==existing.id;});
     cellEl.classList.remove('selected');
   } else {
-    team.players.push({id:uid(), number:num, firstName:'', lastName:'', year:'', position:'OH', status:'Active', photo:null, inactiveReason:null, inactiveNote:''});
+    team.players.push({id:uid(), number:num, firstName:'', lastName:'', year:'', position:'OH', status:'Active', photo:null, inactiveReason:null, inactiveNote:'',
+      transferHistory:[{teamId:team.id, teamName:team.name, fromDate:new Date().toISOString(), toDate:null}]});
     cellEl.classList.add('selected');
   }
   saveDB();
@@ -2698,6 +2744,12 @@ onTap(document.getElementById('btn-player-transfer'), function(){
     customConfirm('#'+p.number+' '+fullname+'-г "'+oldTeam.name+'" багаас "'+newTeam.name+'" багт шилжүүлэх үү? Хуучин багийн MMR-ийн хувийг шинэ баг авна.', function(){
       // compute and apply MMR split BEFORE removing the player from the roster
       var mmrResult = transferPlayerMmr(oldTeam, newTeam);
+      // record the transfer in the player's team history (close current stint, open a new one)
+      ensurePlayerTransferHistory(p, oldTeam);
+      var nowIso = new Date().toISOString();
+      var openStint = p.transferHistory[p.transferHistory.length-1];
+      if(openStint && !openStint.toDate){ openStint.toDate = nowIso; }
+      p.transferHistory.push({teamId:newTeam.id, teamName:newTeam.name, fromDate:nowIso, toDate:null});
       // move the player object to the new team, give them a free jersey number if taken
       oldTeam.players = oldTeam.players.filter(function(pl){return pl.id!==p.id;});
       var newNum = p.number;
@@ -2713,6 +2765,11 @@ onTap(document.getElementById('btn-player-transfer'), function(){
     });
   });
 });
+function ensurePlayerTransferHistory(p, currentTeam){
+  if(!p.transferHistory || p.transferHistory.length===0){
+    p.transferHistory = [{teamId:currentTeam.id, teamName:currentTeam.name, fromDate:null, toDate:null}];
+  }
+}
 
 /* ---------- PLAYER STATS HISTORY (chart of stats over time) ---------- */
 var playerStatsMetric = 'killpct';
@@ -2872,6 +2929,7 @@ function openPlayerInfo(teamId, playerId){
   renderPlayerPhotoPicker(p);
   renderPlayerMvpBadge(p);
   renderPlayerInjuryRisk(teamId, playerId);
+  renderPlayerTransferHistory(p, team);
   showScreen('screen-playerinfo');
 }
 function renderInactiveReasonRow(p){
@@ -2892,6 +2950,46 @@ onTap(document.getElementById('row-inactive-reason'), function(){
     renderInactiveReasonRow(p);
   });
 });
+/* ---------- PLAYER TRANSFER HISTORY (previous teams + dates) ---------- */
+function formatShortDate(iso){
+  if(!iso) return 'Тодорхойгүй';
+  var d = new Date(iso);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function stintDaysLabel(fromIso, toIso){
+  if(!fromIso) return '';
+  var end = toIso ? new Date(toIso) : new Date();
+  var start = new Date(fromIso);
+  var days = Math.max(0, Math.round((end-start)/(24*3600*1000)));
+  return days+' хоног';
+}
+function renderPlayerTransferHistory(p, currentTeam){
+  var wrap = document.getElementById('player-transfer-history');
+  if(!p.transferHistory || p.transferHistory.length<=1){
+    // nothing to show if the player has never transferred (single or no stint)
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+  var stints = p.transferHistory.slice().reverse(); // most recent first
+  var rowsHtml = stints.map(function(s, idx){
+    var isCurrent = !s.toDate;
+    var team = DB.teams.find(function(t){return t.id===s.teamId;});
+    var teamColor = team ? (team.color||'#8E8E93') : '#8E8E93';
+    var dateRange = formatShortDate(s.fromDate)+' — '+(s.toDate ? formatShortDate(s.toDate) : 'одоо');
+    var daysLabel = stintDaysLabel(s.fromDate, s.toDate);
+    return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;'+(idx<stints.length-1?'border-bottom:1px solid #eee;':'')+'">'+
+      '<span style="width:10px;height:10px;border-radius:50%;background:'+teamColor+';flex:0 0 auto;"></span>'+
+      '<div style="flex:1;">'+
+      '<div style="font-weight:700;font-size:13px;">'+escapeHtml(s.teamName)+(isCurrent?' <span style="color:var(--green);font-weight:700;">(одоо)</span>':'')+'</div>'+
+      '<div style="font-size:11px;color:#8A8A8E;">'+dateRange+(daysLabel?(' · '+daysLabel):'')+'</div>'+
+      '</div></div>';
+  }).join('');
+  wrap.innerHTML = '<div style="background:#F8F8FA;border-radius:12px;padding:12px 14px;">'+
+    '<div style="font-weight:800;font-size:14px;margin-bottom:6px;">🔁 Солилцооны түүх</div>'+
+    rowsHtml+
+    '</div>';
+}
 function renderPlayerMvpBadge(p){
   var badge = document.getElementById('player-mvp-badge');
   var totals = DB.playerTotals[p.id];
