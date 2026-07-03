@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#3478F6">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Scorebook+</title>
 <style>
   :root{
@@ -4559,6 +4562,18 @@ setTimeout(function(){
 }, 600);
 
 })();
+</script>
+<script>
+/* Service worker registration for offline PWA support. This silently does
+   nothing (catches the error) inside Claude's sandboxed preview where
+   service workers aren't allowed; it works normally when this file is
+   hosted for real (e.g. GitHub Pages) so the app can be reopened offline
+   after the first visit. */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){ /* not available in this environment, ignore */ });
+  });
+}
 </script>
 </body>
 </html>
