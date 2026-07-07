@@ -504,16 +504,6 @@
   </div>
 
 
-  <!-- LEADERBOARD -->
-  <div class="screen" id="screen-leaderboard">
-    <div class="topbar">
-      <button class="iconbtn" id="btn-menu-leaderboard"><div class="hamburger"><span></span><span></span><span></span></div></button>
-      <div class="title">Leaderboard</div>
-      <div style="width:44px"></div>
-    </div>
-    <div class="list" id="leaderboard-list"></div>
-  </div>
-
   <!-- LEAGUE LIST -->
   <div class="screen" id="screen-leagues">
     <div class="topbar">
@@ -574,6 +564,7 @@
       <div class="league-tab" id="tab-league-standings">Standings</div>
       <div class="league-tab" id="tab-league-fixtures">Fixtures</div>
       <div class="league-tab" id="tab-league-players">Players</div>
+      <div class="league-tab" id="tab-league-bestxi">Best-XI</div>
     </div>
     <div class="league-grid-wrap" id="league-grid-wrap"></div>
   </div>
@@ -606,16 +597,6 @@
       <div style="width:44px"></div>
     </div>
     <div class="list" id="h2h-detail-wrap"></div>
-  </div>
-
-  <!-- BEST-XI (ШИГШЭЭ БАГ) -->
-  <div class="screen" id="screen-bestxi">
-    <div class="topbar">
-      <button class="iconbtn" id="btn-back-bestxi"><span class="backchevron">‹</span></button>
-      <div class="title">Шигшээ баг</div>
-      <div style="width:44px"></div>
-    </div>
-    <div class="list" id="bestxi-wrap"></div>
   </div>
 
   <!-- ALL-TIME RECORDS -->
@@ -651,10 +632,8 @@
   <div class="menu-row" id="nav-search">🔍 Хайх</div>
   <div class="menu-row" id="nav-manageteams">Manage Teams</div>
   <div class="menu-row" id="nav-savedmatches">Saved Matches</div>
-  <div class="menu-row" id="nav-leaderboard">Leaderboard</div>
   <div class="menu-row" id="nav-leagues">League</div>
   <div class="menu-row" id="nav-h2h">Head-to-Head</div>
-  <div class="menu-row" id="nav-bestxi">Шигшээ баг (Best-XI)</div>
   <div class="menu-row" id="nav-records">🏛️ All-Time Records</div>
   <div class="menu-spacer"></div>
   <div class="menu-row" id="nav-external">External Scoreboard</div>
@@ -1227,73 +1206,6 @@ function renderPlayerOfPeriod(){
     playerOfPeriodCardHtml('САРЫН ШИЛДЭГ', '🏆', monthData)+
     '</div>';
 }
-function renderLeaderboard(){
-  var wrap = document.getElementById('leaderboard-list');
-  wrap.innerHTML = '';
-
-  wrap.innerHTML += renderPlayerOfPeriod();
-
-  var settingsRow = document.createElement('div');
-  settingsRow.className = 'list-row';
-  settingsRow.style.background = '#F2F1F6';
-  settingsRow.innerHTML = '<div class="lsub" style="font-size:15px;">Шигшээгийн заагийн тоо (категори тус бүрт)</div><div class="lname" style="color:var(--blue);font-size:17px;">'+DB.leaderboardCutoff+' ›</div>';
-  onTap(settingsRow, function(){
-    customPrompt('Шигшээгийн заагийн тоо:', DB.leaderboardCutoff, function(nv){
-      var n = parseInt(nv,10);
-      if(!isNaN(n) && n>0){ DB.leaderboardCutoff = n; saveDB(); renderLeaderboard(); }
-    });
-  });
-  wrap.appendChild(settingsRow);
-
-  var allPlayers = [];
-  DB.teams.forEach(function(team){
-    team.players.forEach(function(p){
-      var cat = POSITION_CATEGORY[p.position] || 'Dig';
-      var totals = DB.playerTotals[p.id];
-      allPlayers.push({player:p, team:team, category:cat, score: computeScore(totals)});
-    });
-  });
-
-  if(allPlayers.length===0){
-    wrap.innerHTML += '<div class="emptystate">Баг, тоглогч алга байна.</div>';
-    return;
-  }
-
-  var newRanks = {};
-  CATEGORY_ORDER.forEach(function(cat){
-    var group = allPlayers.filter(function(x){return x.category===cat;}).sort(function(a,b){return b.score-a.score;});
-    if(group.length===0) return;
-    var head = document.createElement('div');
-    head.className = 'menu-row';
-    head.style.background = '#3a3a3c'; head.style.color = '#fff'; head.style.fontWeight = '700';
-    head.textContent = CATEGORY_LABELS[cat];
-    wrap.appendChild(head);
-    group.forEach(function(item, idx){
-      newRanks[item.player.id] = idx;
-      if(idx === DB.leaderboardCutoff && group.length > DB.leaderboardCutoff){
-        var divider = document.createElement('div');
-        divider.className = 'list-row';
-        divider.style.justifyContent = 'center';
-        divider.style.background = '#F2F1F6';
-        divider.innerHTML = '<div style="color:#8A8A8E;font-weight:700;letter-spacing:1px;font-size:14px;">— ШИГШЭЭГИЙН ЗААГ —</div>';
-        wrap.appendChild(divider);
-      }
-      var fullname = ((item.player.firstName||'')+' '+(item.player.lastName||'')).trim() || ('#'+item.player.number);
-      var row = document.createElement('div');
-      row.className = 'list-row';
-      var arrow = rankArrowHtml(leaderboardPrevRanks[item.player.id], idx);
-      var pTotals = DB.playerTotals[item.player.id];
-      var mvpBadge = (pTotals && pTotals.mvpCount) ? ' <span title="Match MVP" style="font-size:13px;">🏆×'+pTotals.mvpCount+'</span>' : '';
-      row.innerHTML =
-        '<div style="display:flex;align-items:center;gap:12px;">'+playerAvatarHtml(item.player, item.team, 'small')+
-        '<div><div class="lname" style="font-size:17px;">'+(idx+1)+'. '+escapeHtml(fullname)+' <span style="color:#8A8A8E;font-weight:400;">#'+item.player.number+'</span>'+mvpBadge+'</div>'+
-        '<div class="lsub" style="font-size:14px;">'+escapeHtml(item.team.name)+'</div></div></div>'+
-        '<div style="display:flex;align-items:center;gap:10px;">'+arrow+'<div class="lname" style="font-size:19px;color:var(--blue);">'+item.score+'</div></div>';
-      wrap.appendChild(row);
-    });
-  });
-  leaderboardPrevRanks = newRanks;
-}
 
 
 /* ---------- LEAGUE ---------- */
@@ -1323,6 +1235,39 @@ function applyLeaguePoints(m){
   if(homeWon>awayWon){ pts = vnlPoints(homeWon, awayWon); hs.won++; hs.points+=pts.win; as.points+=pts.lose; }
   else { pts = vnlPoints(awayWon, homeWon); as.won++; as.points+=pts.win; hs.points+=pts.lose; }
   saveDB();
+}
+/* Recompute a league's whole win/loss points table from scratch, based on
+   whichever completed matches for that league still exist in DB.matches.
+   Call this after deleting a match so standings stay accurate instead of
+   keeping stale points from a match that no longer exists. */
+function recomputeLeaguePoints(league){
+  league.pointsTable = {};
+  league.teamIds.forEach(function(tid){ ensureLeagueStat(league, tid); });
+  var matches = DB.matches.filter(function(m){ return m.completed && m.leagueId===league.id; })
+    .sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
+  matches.forEach(function(m){
+    var hs = ensureLeagueStat(league, m.homeTeamId);
+    var as = ensureLeagueStat(league, m.awayTeamId);
+    hs.played++; as.played++;
+    var pts;
+    if(m.homeSets>m.awaySets){ pts=vnlPoints(m.homeSets,m.awaySets); hs.won++; hs.points+=pts.win; as.points+=pts.lose; }
+    else { pts=vnlPoints(m.awaySets,m.homeSets); as.won++; as.points+=pts.win; hs.points+=pts.lose; }
+  });
+}
+/* Recompute every team's MMR from scratch by replaying all completed
+   matches in chronological order. Call this after deleting a match so MMR
+   doesn't keep a stale delta from a match that no longer exists. */
+function recomputeAllTeamMmr(){
+  DB.teams.forEach(function(t){ t.mmr = 0; t.mmrWins = 0; t.mmrLosses = 0; });
+  var matches = DB.matches.filter(function(m){ return m.completed; })
+    .sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
+  matches.forEach(function(m){
+    var homeTeam = DB.teams.find(function(t){return t.id===m.homeTeamId;});
+    var awayTeam = DB.teams.find(function(t){return t.id===m.awayTeamId;});
+    if(!homeTeam || !awayTeam) return;
+    var homeWon = m.homeSets > m.awaySets;
+    updateTeamMmrForMatch(homeWon?homeTeam:awayTeam, homeWon?awayTeam:homeTeam);
+  });
 }
 
 function renderLeaguesList(){
@@ -1395,7 +1340,7 @@ function renderLeaguesList(){
 function deleteLeague(leagueId){
   var lg = DB.leagues.find(function(l){return l.id===leagueId;});
   if(!lg) return;
-  customConfirm('"'+lg.name+'" лигийг бүрэн устгах уу? Энэ лигт хамаарах тоглолтын мэдээлэл хэвээр үлдэх ч лигийн бүтэц (grid, standings, playoff, fixtures) устана. Энэ үйлдлийг буцаах боломжгүй.', function(){
+  customConfirm('"'+lg.name+'" лигийг бүрэн устгах уу? Энэ лигийн leaderboard, grid, standings, playoff, fixtures бүгд устана. Тоглогчдын хувийн статистик (Kill/Ace/Dig гэх мэт) болон тоглолтын түүх Saved Matches-д хэвээр хадгалагдана. Энэ үйлдлийг буцаах боломжгүй.', function(){
     DB.leagues = DB.leagues.filter(function(l){return l.id!==leagueId;});
     saveDB();
     renderLeaguesList();
@@ -1405,7 +1350,6 @@ function deleteLeague(leagueId){
 onTap(document.getElementById('btn-menu-leagues'), openSidebar);
 onTap(document.getElementById('nav-leagues'), function(){ closeSidebar(); renderLeaguesList(); showScreen('screen-leagues'); });
 onTap(document.getElementById('nav-h2h'), function(){ closeSidebar(); openH2hPicker(); });
-onTap(document.getElementById('nav-bestxi'), function(){ closeSidebar(); openBestXi(); });
 onTap(document.getElementById('nav-records'), function(){ closeSidebar(); openRecords(); });
 onTap(document.getElementById('nav-search'), function(){ closeSidebar(); openSearch(); });
 onTap(document.getElementById('btn-add-league'), function(){ openCreateLeague(); });
@@ -1640,6 +1584,7 @@ function openLeagueDetail(leagueId){
   leagueDetailTab = 'grid';
   leagueStandingsWeekFilter = 'all';
   leagueGridWeekFilter = 'current';
+  leaguePlayersMode = 'this';
   renderLeagueDetail();
   showScreen('screen-league-detail');
 }
@@ -1675,6 +1620,8 @@ function renderLeagueDetail(){
   document.getElementById('tab-league-standings').classList.toggle('active', leagueDetailTab==='standings');
   document.getElementById('tab-league-fixtures').classList.toggle('active', leagueDetailTab==='fixtures');
   document.getElementById('tab-league-players').classList.toggle('active', leagueDetailTab==='players');
+  document.getElementById('tab-league-bestxi').classList.toggle('active', leagueDetailTab==='bestxi');
+  if(leagueDetailTab==='bestxi'){ renderLeagueBestXi(league); return; }
   if(isPvp){ renderPvpBracketTab(league); return; }
   if(leagueDetailTab==='grid') renderLeagueGrid(league);
   else if(leagueDetailTab==='standings') renderLeagueStandings(league);
@@ -1685,6 +1632,7 @@ onTap(document.getElementById('tab-league-grid'), function(){ leagueDetailTab='g
 onTap(document.getElementById('tab-league-standings'), function(){ leagueDetailTab='standings'; renderLeagueDetail(); });
 onTap(document.getElementById('tab-league-fixtures'), function(){ leagueDetailTab='fixtures'; renderLeagueDetail(); });
 onTap(document.getElementById('tab-league-players'), function(){ leagueDetailTab='players'; renderLeagueDetail(); });
+onTap(document.getElementById('tab-league-bestxi'), function(){ leagueDetailTab='bestxi'; renderLeagueDetail(); });
 onTap(document.getElementById('btn-back-league-detail'), function(){ renderLeaguesList(); showScreen('screen-leagues'); });
 onTap(document.getElementById('btn-league-delete'), function(){
   if(!currentLeagueId) return;
@@ -1693,7 +1641,7 @@ onTap(document.getElementById('btn-league-delete'), function(){
 function deleteLeagueAndGoBack(leagueId){
   var lg = DB.leagues.find(function(l){return l.id===leagueId;});
   if(!lg) return;
-  customConfirm('"'+lg.name+'" лигийг бүрэн устгах уу? Энэ үйлдлийг буцаах боломжгүй.', function(){
+  customConfirm('"'+lg.name+'" лигийг бүрэн устгах уу? Энэ лигийн leaderboard, grid, standings, playoff, fixtures бүгд устана. Тоглогчдын хувийн статистик болон тоглолтын түүх Saved Matches-д хэвээр хадгалагдана. Энэ үйлдлийг буцаах боломжгүй.', function(){
     DB.leagues = DB.leagues.filter(function(l){return l.id!==leagueId;});
     saveDB();
     renderLeaguesList();
@@ -2016,26 +1964,100 @@ function renderLeagueStandings(league){
 }
 
 /* ---------- LEAGUE PLAYERS TAB: ranked by score within position category (like Leaderboard), scoped to this league's teams ---------- */
+/* ---------- LEAGUE-SCOPED PLAYER STATS (computed only from matches tagged
+   with the given league id(s) — NOT the old global DB.playerTotals) ---------- */
+function computeLeagueMatchPlayerStats(leagueIds){
+  var totals = {};
+  DB.matches.forEach(function(m){
+    // Count any recorded stats for this league even if the match hasn't
+    // been played all the way to a final result yet (e.g. exited early) —
+    // the kills/aces/digs already logged are real and should count.
+    if(leagueIds.indexOf(m.leagueId) < 0) return;
+    [m.statsHome, m.statsAway].forEach(function(statsObj){
+      if(!statsObj) return;
+      Object.keys(statsObj).forEach(function(pid){
+        var s = statsObj[pid];
+        if(!totals[pid]) totals[pid] = {kills:0,atkE:0,totAtk:0,aces:0,srvE:0,digs:0,blk:0,asst:0,asstE:0,mvpCount:0};
+        var t = totals[pid];
+        t.kills+=(s.kills||0); t.atkE+=(s.atkE||0); t.totAtk+=(s.totAtk||0);
+        t.aces+=(s.aces||0); t.srvE+=(s.srvE||0); t.digs+=(s.digs||0);
+        t.blk+=(s.blk||0); t.asst+=(s.asst||0); t.asstE+=(s.asstE||0);
+      });
+    });
+    if(m.mvpPlayerId){
+      if(!totals[m.mvpPlayerId]) totals[m.mvpPlayerId] = {kills:0,atkE:0,totAtk:0,aces:0,srvE:0,digs:0,blk:0,asst:0,asstE:0,mvpCount:0};
+      totals[m.mvpPlayerId].mvpCount++;
+    }
+  });
+  return totals;
+}
+function getLeagueAncestorChain(league){
+  var chain = [];
+  var current = league;
+  var guard = 0;
+  while(current && current.sourceLeagueId && guard<20){
+    var parent = DB.leagues.find(function(l){return l.id===current.sourceLeagueId;});
+    if(!parent) break;
+    chain.push(parent);
+    current = parent;
+    guard++;
+  }
+  return chain;
+}
+var leaguePlayersMode = 'this'; // 'this' | 'prev' | 'combined'
 function renderLeaguePlayers(league){
   var wrap = document.getElementById('league-grid-wrap');
-  var teams = league.teamIds.map(function(tid){ return DB.teams.find(function(t){return t.id===tid;}); }).filter(Boolean);
   if(!league.prevPlayerRanks) league.prevPlayerRanks = {};
+  var ancestors = getLeagueAncestorChain(league);
+  var hasPrev = ancestors.length>0;
+  if(!hasPrev) leaguePlayersMode = 'this';
+
+  var html = '';
+  if(hasPrev){
+    html += '<div style="padding:10px 16px 0;"><div class="seg" id="seg-league-players-mode">'+
+      '<div data-v="this" class="'+(leaguePlayersMode==='this'?'on':'')+'" style="flex:1;text-align:center;">Энэ шат</div>'+
+      '<div data-v="prev" class="'+(leaguePlayersMode==='prev'?'on':'')+'" style="flex:1;text-align:center;">Өмнөх шат</div>'+
+      '<div data-v="combined" class="'+(leaguePlayersMode==='combined'?'on':'')+'" style="flex:1;text-align:center;">Нийлбэр</div>'+
+      '</div></div>';
+  }
+
+  var teamIds, leagueIdsForStats, refLeague;
+  if(!hasPrev || leaguePlayersMode==='this'){
+    teamIds = league.teamIds.slice();
+    leagueIdsForStats = [league.id];
+    refLeague = league;
+  } else if(leaguePlayersMode==='prev'){
+    var immediateParent = ancestors[0];
+    teamIds = immediateParent.teamIds.slice();
+    leagueIdsForStats = [immediateParent.id];
+    refLeague = immediateParent;
+  } else {
+    var idSet = {};
+    league.teamIds.forEach(function(id){ idSet[id]=true; });
+    ancestors.forEach(function(a){ a.teamIds.forEach(function(id){ idSet[id]=true; }); });
+    teamIds = Object.keys(idSet);
+    leagueIdsForStats = [league.id].concat(ancestors.map(function(a){return a.id;}));
+    refLeague = league;
+  }
+
+  var teams = teamIds.map(function(tid){ return DB.teams.find(function(t){return t.id===tid;}); }).filter(Boolean);
+  var scopedTotals = computeLeagueMatchPlayerStats(leagueIdsForStats);
 
   var allPlayers = [];
   teams.forEach(function(team){
     team.players.forEach(function(p){
       var cat = POSITION_CATEGORY[p.position] || 'Dig';
-      var totals = DB.playerTotals[p.id];
+      var totals = scopedTotals[p.id];
       allPlayers.push({player:p, team:team, category:cat, score: computeScore(totals)});
     });
   });
 
   if(allPlayers.length===0){
-    wrap.innerHTML = '<div class="emptystate">Лигт тоглогч алга байна.</div>';
+    wrap.innerHTML = html + '<div class="emptystate">Лигт тоглогч алга байна.</div>';
+    bindLeaguePlayersModeToggle(league);
     return;
   }
 
-  var html = '';
   var newRanks = {};
   CATEGORY_ORDER.forEach(function(cat){
     var group = allPlayers.filter(function(x){return x.category===cat;}).sort(function(a,b){return b.score-a.score;});
@@ -2043,10 +2065,10 @@ function renderLeaguePlayers(league){
     html += '<div class="menu-row" style="background:#3a3a3c;color:#fff;font-weight:700;">'+CATEGORY_LABELS[cat]+'</div>';
     group.forEach(function(item, idx){
       newRanks[item.player.id] = idx;
-      var eliminated = league.eliminatedTeamIds.indexOf(item.team.id)>=0;
+      var eliminated = refLeague.activeTeamIds.indexOf(item.team.id) < 0;
       var fullname = ((item.player.firstName||'')+' '+(item.player.lastName||'')).trim() || ('#'+item.player.number);
       var inactiveTag = item.player.status==='Inactive' ? '<span class="inactivetag" style="font-size:12px;">INACTIVE'+(item.player.inactiveNote?(' · '+escapeHtml(item.player.inactiveNote)):'')+'</span>' : '';
-      var arrow = rankArrowHtml(league.prevPlayerRanks[item.player.id], idx);
+      var arrow = (leaguePlayersMode==='this') ? rankArrowHtml(league.prevPlayerRanks[item.player.id], idx) : rankArrowHtml(undefined, idx);
       html += '<div class="list-row"'+(eliminated?' style="opacity:.55;"':'')+'>'+
         '<div style="display:flex;align-items:center;gap:12px;">'+playerAvatarHtml(item.player, item.team, 'small')+
         '<div><div class="lname" style="font-size:17px;">'+(idx+1)+'. '+escapeHtml(fullname)+' <span style="color:#8A8A8E;font-weight:400;">#'+item.player.number+'</span> '+inactiveTag+'</div>'+
@@ -2055,8 +2077,15 @@ function renderLeaguePlayers(league){
     });
   });
   wrap.innerHTML = html;
-  league.prevPlayerRanks = newRanks;
-  saveDB();
+  if(leaguePlayersMode==='this'){ league.prevPlayerRanks = newRanks; saveDB(); }
+  bindLeaguePlayersModeToggle(league);
+}
+function bindLeaguePlayersModeToggle(league){
+  var seg = document.getElementById('seg-league-players-mode');
+  if(!seg) return;
+  seg.querySelectorAll('div').forEach(function(d){
+    onTap(d, function(){ leaguePlayersMode = d.getAttribute('data-v'); renderLeaguePlayers(league); });
+  });
 }
 
 
@@ -2207,8 +2236,6 @@ onTap(sidebarDim, closeSidebar);
 onTap(document.getElementById('nav-newmatch'), function(){ closeSidebar(); openNewMatch(); });
 onTap(document.getElementById('nav-manageteams'), function(){ closeSidebar(); renderTeamsList(); showScreen('screen-teams'); });
 onTap(document.getElementById('nav-savedmatches'), function(){ closeSidebar(); renderSavedList(); showScreen('screen-saved'); });
-onTap(document.getElementById('nav-leaderboard'), function(){ closeSidebar(); renderLeaderboard(); showScreen('screen-leaderboard'); });
-onTap(document.getElementById('btn-menu-leaderboard'), openSidebar);
 onTap(document.getElementById('nav-external'), function(){ closeSidebar(); toast('External Scoreboard - irэхгүй удахгүй'); });
 onTap(document.getElementById('nav-moreapps'), function(){ closeSidebar(); toast('More Apps - удахгүй'); });
 onTap(document.getElementById('nav-contact'), function(){ closeSidebar(); toast('Contact: support@scorebookplus.example'); });
@@ -2301,7 +2328,7 @@ function renderH2hDetail(teamAId, teamBId){
   wrap.innerHTML = html;
 }
 
-/* ---------- BEST-XI (ШИГШЭЭ БАГ) GENERATOR ---------- */
+/* ---------- BEST-XI (ШИГШЭЭ БАГ) GENERATOR — scoped to a single league's own players/matches ---------- */
 // Pool template: broader squad pool, not the 6-starter lineup template
 var BESTXI_TEMPLATE = [
   {pos:'OH', count:6},
@@ -2310,30 +2337,26 @@ var BESTXI_TEMPLATE = [
   {pos:'S', count:2}
 ];
 var BESTXI_DIG_COUNT = 2;
-function openBestXi(){
-  renderBestXi();
-  showScreen('screen-bestxi');
-}
-function renderBestXi(){
-  var wrap = document.getElementById('bestxi-wrap');
+function renderLeagueBestXi(league){
+  var wrap = document.getElementById('league-grid-wrap');
+  var teams = league.teamIds.map(function(tid){ return DB.teams.find(function(t){return t.id===tid;}); }).filter(Boolean);
+  var scopedTotals = computeLeagueMatchPlayerStats([league.id]);
+
   var allPlayers = [];
-  DB.teams.forEach(function(team){
+  teams.forEach(function(team){
     team.players.forEach(function(p){
       if(p.status==='Inactive') return;
-      var totals = DB.playerTotals[p.id];
+      var totals = scopedTotals[p.id];
       allPlayers.push({player:p, team:team, category: POSITION_CATEGORY[p.position]||'Dig', score: computeScore(totals)});
     });
   });
 
-  var html = '<div class="lineup-sub" style="padding:12px 16px;">Leaderboard-ийн оноон дээр суурилсан шигшээ бүрэлдэхүүн: 6 OH · 4 OPP · 4 MID · 2 Set · 2 Dig</div>';
-  var pickedIds = {};
+  var html = '<div class="lineup-sub" style="padding:12px 16px;">Энэ лигийн тоглолтуудад суурилсан шигшээ бvрэлдэхvvн: 6 OH · 4 OPP · 4 MID · 2 Set · 2 Dig</div>';
 
   BESTXI_TEMPLATE.forEach(function(req){
-    var cat = POSITION_CATEGORY[req.pos] || null;
     var pool = allPlayers.filter(function(x){ return x.player.position===req.pos; })
       .sort(function(a,b){ return b.score - a.score; });
     var picks = pool.slice(0, req.count);
-    picks.forEach(function(x){ pickedIds[x.player.id]=true; });
     html += '<div class="menu-row" style="background:#3a3a3c;color:#fff;font-weight:700;">'+(LINEUP_POS_LABELS[req.pos]||req.pos)+' ('+picks.length+'/'+req.count+')</div>';
     if(picks.length===0){
       html += '<div class="list-row"><div class="lsub">Тоглогч алга</div></div>';
@@ -2350,7 +2373,6 @@ function renderBestXi(){
     }
   });
 
-  // Dig / Libero pool
   var digPool = allPlayers.filter(function(x){ return LINEUP_DIG_POSITIONS.indexOf(x.player.position)>=0; })
     .sort(function(a,b){ return b.score - a.score; });
   var digPicks = digPool.slice(0, BESTXI_DIG_COUNT);
@@ -2371,7 +2393,6 @@ function renderBestXi(){
 
   wrap.innerHTML = html;
 }
-onTap(document.getElementById('btn-back-bestxi'), function(){ renderTeamsList(); showScreen('screen-teams'); });
 
 /* ---------- GLOBAL SEARCH: teams, players, matches ---------- */
 var searchQuery = '';
@@ -2469,8 +2490,9 @@ function renderSearchResults(){
 function renderTeamsList(){
   var wrap = document.getElementById('teams-list');
   wrap.innerHTML = '';
+  wrap.innerHTML += renderPlayerOfPeriod();
   if(DB.teams.length===0){
-    wrap.innerHTML = '<div class="emptystate">Баг алга байна. Дээд талын + товчоор шинэ баг нэмнэ үү.</div>';
+    wrap.innerHTML += '<div class="emptystate">Баг алга байна. Дээд талын + товчоор шинэ баг нэмнэ үү.</div>';
     return;
   }
   DB.teams.forEach(function(team){
@@ -3680,12 +3702,18 @@ function saveMatchToDB(){
 function deleteMatch(matchId){
   var m = DB.matches.find(function(x){return x.id===matchId;});
   if(!m) return;
-  customConfirm('Энэ тоглолтыг бүрэн устгах уу? Энэ үйлдлийг буцаах боломжгүй.', function(){
+  var msg = 'Энэ тоглолтыг бүрэн устгах уу? Хэрэв лигт хамаарах бол тухайн лигийн стандинг (Grid/Standings) болон багуудын MMR автоматаар дахин тооцоологдоно. Тоглогчийн Kill/Ace/Dig гэх хувийн статистик энэ тоглолтоос хасагдана. Энэ үйлдлийг буцаах боломжгүй.';
+  customConfirm(msg, function(){
     DB.matches = DB.matches.filter(function(x){return x.id!==matchId;});
+    if(m.leagueId){
+      var lg = DB.leagues.find(function(l){return l.id===m.leagueId;});
+      if(lg) recomputeLeaguePoints(lg);
+    }
+    recomputeAllTeamMmr();
     saveDB();
     renderSavedList();
     showScreen('screen-saved');
-    toast('Тоглолт устгагдсан');
+    toast('Тоглолт устгагдсан, лиг/MMR шинэчлэгдсэн');
   });
 }
 
