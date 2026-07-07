@@ -1,8 +1,11 @@
 /* Scorebook+ service worker — caches the app shell so it can be opened
-   offline after the first successful visit. Bump CACHE_NAME when you
-   deploy an update so old caches get cleaned up and users get the new
-   version instead of a stale cached one. */
-var CACHE_NAME = 'scorebookplus-cache-v1';
+   offline after the first successful visit. Uses a NETWORK-FIRST strategy:
+   whenever the device is online, it always fetches the latest version from
+   the server (so app updates apply immediately on next reload) and only
+   falls back to the cached copy when the network is unavailable (true
+   offline use). Bump CACHE_NAME whenever you want to force-clear old
+   cached data on user devices. */
+var CACHE_NAME = 'scorebookplus-cache-v2';
 var APP_SHELL = [
   './',
   './index.html',
@@ -35,17 +38,18 @@ self.addEventListener('fetch', function(event){
   if(event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then(function(cached){
-      if(cached) return cached;
-
-      return fetch(event.request).then(function(response){
-        if(response && response.status === 200 && response.type === 'basic'){
-          var clone = response.clone();
-          caches.open(CACHE_NAME).then(function(cache){ cache.put(event.request, clone); });
-        }
-        return response;
-      }).catch(function(){
-        // Offline and not cached: for page navigations, fall back to the cached app shell.
+    fetch(event.request).then(function(response){
+      // Online: always use the fresh network response, and refresh the
+      // cache with it so offline mode later serves the latest version too.
+      if(response && response.status === 200 && response.type === 'basic'){
+        var clone = response.clone();
+        caches.open(CACHE_NAME).then(function(cache){ cache.put(event.request, clone); });
+      }
+      return response;
+    }).catch(function(){
+      // Offline: fall back to whatever was last cached.
+      return caches.match(event.request).then(function(cached){
+        if(cached) return cached;
         if(event.request.mode === 'navigate'){
           return caches.match('./index.html');
         }
