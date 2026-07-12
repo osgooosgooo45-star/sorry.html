@@ -1,4 +1,2157 @@
 
+    <!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#3478F6">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Scorebook+</title>
+<style>
+  :root{
+    --blue:#3478F6;
+    --blue-dark:#2a63cf;
+    --bg:#ffffff;
+    --bg-grey:#F2F1F6;
+    --divider:#E1E0E6;
+    --text:#111111;
+    --subtext:#8A8A8E;
+    --green:#34C759;
+    --pink:#FF3CAC;
+    --skyblue:#5AC8FA;
+    --white:#FFFFFF;
+    --red:#FF4136;
+    --orange:#FF9F0A;
+    --yellow:#FFD60A;
+    --darkbtn:#1c1c1e;
+    --darkbtn2:#2c2c2e;
+    --black:#000000;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;color:var(--text);overflow:hidden;}
+  #app{position:fixed;inset:0;overflow:hidden;}
+  .screen{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;overflow:hidden;}
+  .screen.active{display:flex;}
+  .topbar{height:54px;min-height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 8px;border-bottom:1px solid var(--divider);background:var(--bg);position:relative;}
+  .topbar .title{position:absolute;left:0;right:0;text-align:center;font-size:18px;font-weight:700;pointer-events:none;}
+  .iconbtn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:none;}
+  .hamburger{display:flex;flex-direction:column;gap:5px;width:24px;}
+  .hamburger span{display:block;height:3px;background:var(--blue);border-radius:2px;}
+  .backchevron{font-size:26px;color:var(--blue);font-weight:600;}
+  .plusbtn{width:30px;height:30px;border-radius:50%;border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;color:var(--blue);font-size:20px;font-weight:600;}
+  .navlink{color:var(--blue);font-size:17px;font-weight:500;padding:6px 4px;}
+  .topbar.purple{background:linear-gradient(135deg,#9b4df0,#b96cf5);border-bottom:none;}
+  .topbar.purple .backchevron{color:#fff;}
+  .personaddbtn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:#3478F6;background:#fff;border-radius:50%;font-size:15px;position:relative;}
+  .personaddbtn .plus{position:absolute;right:-3px;bottom:-3px;width:14px;height:14px;border-radius:50%;background:#3478F6;color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;}
+  .inactivetag{color:var(--red);font-weight:700;font-size:15px;margin-left:8px;}
+  .numgrid-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .numgrid-count{text-align:center;font-weight:700;font-size:17px;padding:14px 0 4px;}
+  .numgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:14px 18px 30px;}
+  .numcell{aspect-ratio:1;border:2px solid #000;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;background:#fff;color:#000;}
+  .numcell.selected{background:#5C9E6F;border-color:#000;}
+  .playertile{min-width:90px;flex:0 0 auto;background:#555;border:1px solid #fff;border-radius:10px;padding:12px 10px;text-align:center;color:#fff;font-size:15px;font-weight:600;line-height:1.3;}
+  .avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex:0 0 auto;background-size:cover;background-position:center;overflow:hidden;}
+  .avatar.small{width:32px;height:32px;font-size:13px;}
+  .avatar.large{width:84px;height:84px;font-size:30px;}
+  .avatar img{width:100%;height:100%;object-fit:cover;}
+  .colorswatch{width:28px;height:28px;border-radius:50%;flex:0 0 auto;border:2px solid transparent;}
+  .colorswatch.selected{border-color:#000;}
+  .colorswatch-big{width:40px;height:40px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;}
+  .colorgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;padding:16px 20px;}
+  .photopicker{width:84px;height:84px;border-radius:50%;margin:18px auto 4px;display:flex;align-items:center;justify-content:center;background:#F2F1F6;border:2px dashed #C7C7CC;overflow:hidden;position:relative;}
+  .photopicker img{width:100%;height:100%;object-fit:cover;}
+  .photopicker .camicon{font-size:26px;color:var(--subtext);}
+  .photopicker-label{text-align:center;color:var(--blue);font-size:14px;font-weight:600;padding-bottom:14px;}
+  .playertile.selected{background:var(--green);}
+
+  .list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .list-row{padding:14px 18px;border-bottom:1px solid var(--divider);display:flex;align-items:center;justify-content:space-between;}
+  .list-row .lname{font-size:19px;font-weight:700;}
+  .list-row .lsub{font-size:17px;color:var(--text);font-weight:400;margin-top:2px;}
+  .list-row .chev{color:#C7C7CC;font-size:20px;}
+  .menu-row{padding:16px 20px;border-bottom:1px solid var(--divider);font-size:17px;}
+  .menu-spacer{height:28px;background:var(--bg-grey);border-bottom:1px solid var(--divider);}
+
+  #sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.0);z-index:50;display:none;}
+  #sidebar-overlay.show{display:block;}
+  #sidebar{position:fixed;top:0;left:0;bottom:0;width:72%;max-width:320px;background:var(--bg);transform:translateX(-100%);transition:transform .25s ease;z-index:51;display:flex;flex-direction:column;}
+  #sidebar.open{transform:translateX(0);}
+  #sidebar .sbhead{height:64px;background:var(--blue);display:flex;align-items:center;padding:0 14px;gap:12px;}
+  #sidebar .sbhead .logo{width:38px;height:38px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;}
+  #sidebar .sbhead .title{color:#fff;font-size:21px;font-weight:800;}
+  #sidebar-dim{position:fixed;inset:0;background:rgba(0,0,0,0.35);opacity:0;transition:opacity .25s;z-index:49;display:none;}
+  #sidebar-dim.show{display:block;opacity:1;}
+
+  .stat-modal{position:fixed;inset:0;background:var(--black);z-index:80;display:none;flex-direction:column;color:#fff;}
+  .stat-modal.show{display:flex;}
+  .stat-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;}
+  .stat-title{position:absolute;left:0;right:0;text-align:center;font-size:22px;font-weight:800;pointer-events:none;}
+  .stat-tabs{display:flex;border:1px solid #fff;border-radius:8px;overflow:hidden;flex:1;margin:0 50px;}
+  .stat-tab{flex:1;text-align:center;padding:8px 4px;font-size:15px;font-weight:600;background:transparent;color:#fff;}
+  .stat-tab.active{background:#fff;color:#000;}
+  .circlebtn{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;border:1px solid #555;}
+  .circlebtn.x{background:var(--blue);border:none;color:#fff;}
+  .stat-table-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
+  table.stats{border-collapse:collapse;width:100%;font-size:14px;white-space:nowrap;}
+  table.stats th{background:#3a3a3c;color:#fff;padding:8px 10px;position:sticky;top:0;text-align:left;font-size:13px;}
+  table.stats td{padding:8px 10px;color:#000;}
+  table.stats tr:nth-child(odd) td{background:#fff;}
+  table.stats tr:nth-child(even) td{background:#e3e3e3;}
+  table.stats td.namecell{font-weight:700;}
+
+  /* Live scoring */
+  #screen-live{background:var(--black);color:#fff;}
+  .live-top{display:flex;align-items:center;padding:8px 10px 2px;gap:6px;}
+  .live-top .teamname{font-size:20px;font-weight:800;flex:1;}
+  .live-top .tol{text-align:center;font-size:12px;color:#fff;}
+  .live-top .tolnum{font-size:20px;font-weight:800;color:var(--red);}
+  .clockrow{display:flex;align-items:center;justify-content:space-evenly;padding:4px 4px 8px;}
+  .clockrow .digit{font-family:"Courier New",monospace;font-size:34px;font-weight:700;letter-spacing:1px;}
+  .digit.fade{color:#444;}
+  .digit.orange{color:var(--orange);}
+  .digit.yellow{color:var(--yellow);}
+  .digit.white{color:#fff;}
+  .live-body{flex:1;display:flex;overflow:hidden;}
+  .btncol{width:30%;display:flex;flex-direction:column;}
+  .btn{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:15px;font-weight:700;border:none;border-top:1px solid #000;background:var(--darkbtn);letter-spacing:.5px;padding:4px;}
+  .btn:active{filter:brightness(1.4);}
+  .btn.point{color:var(--yellow);flex:1.1;}
+  .btn.serve{color:var(--green);}
+  .btn.attack{color:var(--pink);}
+  .btn.block{color:var(--skyblue);}
+  .btn.dig{color:#fff;}
+  .btn.error{color:var(--red);}
+  .btn.assist{color:var(--orange);}
+  .btn.sub{color:#BF5AF2;}
+  .btn.filters{color:#bbb;background:#2c2c2e;font-size:13px;}
+  .btn.timeout{color:#fff;background:var(--blue);}
+  .btn.stats{color:#fff;background:var(--orange);font-size:16px;}
+  .row2{display:flex;flex:1;}
+  .row2 .btn{flex:1;}
+  .logpanel{flex:1;background:#fff;color:#000;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+
+  .rotationrow{display:flex;padding:2px 6px 6px;gap:4px;}
+  .rotside{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:3px;}
+  .rotside.away{direction:ltr;}
+  .rotcell{background:#2c2c2e;color:#aaa;text-align:center;font-size:11px;font-weight:700;border-radius:4px;padding:3px 2px;}
+  .rotcell.server{background:var(--yellow);color:#000;}
+
+  /* lineup setup */
+  #screen-lineup{background:#fff;}
+  .lineup-teamname{text-align:center;font-size:20px;font-weight:800;padding:14px 0 4px;}
+  .lineup-sub{text-align:center;color:var(--subtext);font-size:14px;padding-bottom:10px;}
+  .lineup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:10px 18px;}
+  .lineup-slot{aspect-ratio:1;border:2px solid var(--blue);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#F2F1F6;}
+  .lineup-slot .poslabel{font-size:12px;color:var(--subtext);font-weight:700;}
+  .lineup-slot .pname{font-size:15px;font-weight:700;text-align:center;padding:0 4px;}
+  .lineup-slot.filled{background:#E8F0FE;}
+  .lineup-actions{display:flex;gap:10px;padding:16px;}
+  .lineup-actions .bigbtn{flex:1;margin:0;}
+  .lineup-actions .bigbtn.secondary{background:#8E8E93;}
+  .setheader{background:#8e8e93;color:#fff;padding:8px 10px;font-weight:700;font-size:15px;display:flex;justify-content:space-between;position:sticky;top:0;}
+  .logentry{padding:9px 10px;border-bottom:1px solid #ddd;font-size:15px;}
+
+  /* New match / team picker */
+  .pickcard{margin:14px;padding:16px;border:1px solid var(--divider);border-radius:12px;}
+  .pickcard .lbl{font-size:13px;color:var(--subtext);text-transform:uppercase;margin-bottom:6px;}
+  .pickcard .val{font-size:19px;font-weight:700;color:var(--blue);}
+  .bigbtn{margin:20px 16px;background:var(--blue);color:#fff;text-align:center;padding:15px;border-radius:12px;font-size:18px;font-weight:700;}
+  .bigbtn.disabled{background:#bcd0f5;}
+
+  /* player info form */
+  .section-head{background:#3a3a3c;color:#fff;padding:7px 16px;font-size:13px;font-weight:700;letter-spacing:.5px;}
+  .form-row{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--divider);min-height:46px;}
+  .form-row .flbl{font-size:18px;font-weight:700;}
+  .form-row input[type=text]{flex:1;margin-left:16px;border:1px solid #C7C7CC;border-radius:8px;padding:9px 12px;font-size:17px;background:#fff;color:#000;}
+  .form-row .fval{color:#000;font-size:17px;display:flex;align-items:center;gap:6px;}
+  .seg{display:flex;border-radius:8px;overflow:hidden;background:#E5E5EA;}
+  .seg div{padding:8px 16px;font-size:15px;font-weight:600;color:#000;}
+  .seg div.on{background:#fff;border-radius:7px;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+
+  .check{color:var(--blue);font-size:20px;}
+
+  .emptystate{flex:1;display:flex;align-items:center;justify-content:center;color:var(--subtext);font-size:16px;padding:30px;text-align:center;}
+
+  /* LEAGUE */
+  .league-tabs{display:flex;border-bottom:1px solid var(--divider);}
+  .league-tab{flex:1;text-align:center;padding:12px;font-size:15px;font-weight:700;color:var(--subtext);border-bottom:3px solid transparent;}
+  .league-tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+  .league-grid-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
+  .checkrow{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--divider);}
+  .checkrow .ck{width:24px;height:24px;border-radius:50%;border:2px solid #C7C7CC;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:900;}
+  .checkrow.sel .ck{background:var(--blue);border-color:var(--blue);}
+  .gridtable{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap;}
+  .gridtable th,.gridtable td{border:1px solid #ddd;padding:6px 8px;text-align:center;}
+  .gridtable th{background:#3a3a3c;color:#fff;position:sticky;top:0;}
+  .gridtable td.diag{background:#E8F0FE;font-weight:700;}
+  .gridtable td.teamcol{text-align:left;font-weight:700;background:#3a3a3c;color:#fff;position:sticky;left:0;}
+  .leaguechip{display:inline-block;padding:6px 14px;border-radius:16px;background:#E5E5EA;color:#000;font-size:14px;font-weight:600;margin-right:6px;}
+  .leaguechip.active{background:var(--blue);color:#fff;}
+  table.leaguegrid{border-collapse:collapse;font-size:11px;white-space:nowrap;}
+  table.leaguegrid th{background:#3a3a3c;color:#fff;padding:6px 4px;position:sticky;top:0;font-size:10px;min-width:46px;z-index:2;}
+  table.leaguegrid th.corner{position:sticky;left:0;top:0;z-index:3;background:#1c1c1e;}
+  table.leaguegrid td{padding:6px 4px;text-align:center;border:1px solid #ddd;min-width:46px;color:#000;background:#fff;}
+  table.leaguegrid td.rowhead{position:sticky;left:0;background:#3a3a3c;color:#fff;text-align:left;font-weight:700;z-index:1;min-width:80px;}
+  table.leaguegrid td.diag{background:#1c1c1e;color:#fff;font-weight:700;}
+  table.leaguegrid td.win{color:#0058D6;font-weight:700;}
+  table.leaguegrid td.loss{color:#D6004C;font-weight:700;}
+  table.leaguegrid td.empty{color:#bbb;}
+  .league-check{width:22px;height:22px;border:2px solid #C7C7CC;border-radius:5px;display:flex;align-items:center;justify-content:center;}
+  .league-check.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:900;}
+
+  /* generic small modal (player picker / sub-action sheet) */
+  .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:70;display:none;}
+  .sheet-overlay.show{display:block;}
+  .sheet{position:fixed;left:0;right:0;bottom:0;background:#1c1c1e;border-radius:14px 14px 0 0;z-index:71;max-height:75%;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .2s ease;}
+  .sheet.show{transform:translateY(0);}
+  .sheet .shead{padding:14px;text-align:center;color:#fff;font-weight:700;font-size:16px;border-bottom:1px solid #333;}
+  .sheet .slist{overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .sheet .sitem{padding:15px 18px;color:#fff;font-size:17px;border-bottom:1px solid #333;display:flex;justify-content:space-between;}
+  .sheet .sitem .num{color:var(--blue);font-weight:700;margin-right:10px;}
+  .sheet .scancel{padding:15px;text-align:center;color:var(--red);font-weight:700;font-size:17px;}
+
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.9);color:#fff;padding:10px 18px;border-radius:20px;font-size:14px;z-index:200;display:none;}
+
+  .dlg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:none;align-items:center;justify-content:center;}
+  .dlg-overlay.show{display:flex;}
+  .dlg-box{background:#fff;border-radius:14px;width:80%;max-width:320px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.3);}
+  .dlg-msg{padding:20px 18px 14px;text-align:center;font-size:16px;font-weight:600;color:#000;}
+  .dlg-input{margin:0 18px 14px;padding:10px 12px;border:1px solid #C7C7CC;border-radius:8px;font-size:17px;width:calc(100% - 36px);}
+  .dlg-btns{display:flex;border-top:1px solid #E1E0E6;}
+  .dlg-btn{flex:1;text-align:center;padding:14px;font-size:17px;color:var(--blue);font-weight:600;}
+  .dlg-btn.destructive{color:var(--red);font-weight:700;}
+  .dlg-btn + .dlg-btn{border-left:1px solid #E1E0E6;}
+  .swipe-del{background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;width:80px;flex:0 0 80px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TEAMS / HOME SCREEN -->
+  <div class="screen active" id="screen-teams">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-menu-teams"><div class="hamburger"><span></span><span></span><span></span></div></button>
+      <div class="title">Teams</div>
+      <button class="iconbtn"><div class="plusbtn" id="btn-add-team">+</div></button>
+    </div>
+    <div class="list" id="teams-list"></div>
+  </div>
+
+  <!-- NEW MATCH (entry, same chrome as teams but routed via sidebar) -->
+  <div class="screen" id="screen-newmatch">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-menu-newmatch"><div class="hamburger"><span></span><span></span><span></span></div></button>
+      <div class="title">New Match</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="list">
+      <div class="pickcard" id="pick-home">
+        <div class="lbl">Home Team</div>
+        <div class="val" id="pick-home-val">Select Home Team ›</div>
+      </div>
+      <div class="pickcard" id="pick-away">
+        <div class="lbl">Away Team</div>
+        <div class="val" id="pick-away-val">Select Away Team ›</div>
+      </div>
+      <div class="bigbtn disabled" id="btn-start-match">Start Match</div>
+    </div>
+  </div>
+
+  <!-- SAVED MATCHES -->
+  <div class="screen" id="screen-saved">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-menu-saved"><div class="hamburger"><span></span><span></span><span></span></div></button>
+      <div class="title">Saved Matches</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="list" id="saved-list"></div>
+  </div>
+
+  <!-- MATCH DETAIL (in-progress or completed) -->
+  <div class="screen" id="screen-matchdetail">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-matchdetail"><span class="backchevron">‹</span></button>
+      <div class="title" id="matchdetail-title">Match In Progress</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="list" style="flex:0 0 auto;">
+      <div style="padding:10px 16px;font-weight:700;font-size:18px;" id="matchdetail-date"></div>
+      <table style="width:100%;border-collapse:collapse;" id="matchdetail-table"></table>
+      <div id="matchdetail-mvp" style="padding:10px 16px;display:none;"></div>
+    </div>
+    <div style="flex:1;"></div>
+    <div class="bigbtn" style="background:var(--green);" id="btn-matchdetail-stats">Match Stats</div>
+    <div style="display:flex;gap:14px;margin:0 16px 12px;">
+      <div class="bigbtn" style="flex:1;margin:0;" id="btn-matchdetail-export">Export Stats</div>
+      <div class="bigbtn" style="flex:1;margin:0;" id="btn-matchdetail-edit">Edit Match</div>
+    </div>
+    <div class="bigbtn" style="background:var(--red);margin:0 16px 20px;" id="btn-matchdetail-delete">Тоглолт устгах</div>
+  </div>
+
+  <!-- TEAM DETAIL (players) -->
+  <div class="screen" id="screen-teamdetail">
+    <div class="topbar purple">
+      <button class="iconbtn" id="btn-back-teamdetail"><span class="backchevron">‹</span></button>
+      <div style="width:44px"></div>
+      <button class="iconbtn"><div class="personaddbtn" id="btn-add-player">👤<span class="plus">+</span></div></button>
+    </div>
+    <div class="list">
+      <div class="photopicker" id="photopicker-teamlogo" style="margin-top:16px;">
+        <span class="camicon" id="photopicker-teamlogo-icon">🏐</span>
+      </div>
+      <input type="file" accept="image/*" id="inp-teamlogo" style="display:none;">
+      <div class="photopicker-label" id="photopicker-teamlogo-label-text">Лого нэмэх</div>
+      <div class="section-head">REQUIRED</div>
+      <div class="form-row"><div class="flbl">Team</div><input type="text" id="inp-teamname"></div>
+      <div class="form-row" id="row-teamcolor">
+        <div class="flbl">Өнгө</div>
+        <div class="fval"><div class="colorswatch-big" id="val-teamcolor-swatch"></div><span class="backchevron" style="transform:scaleX(-1);font-size:20px;">‹</span></div>
+      </div>
+      <div class="section-head">OPTIONAL</div>
+      <div class="list-row" id="row-playernums"><div class="lname" style="font-weight:400;font-size:18px;">Player #'s</div><div class="lsub" id="playernums-count">0 Players ›</div></div>
+      <div id="players-list"></div>
+    </div>
+  </div>
+
+  <!-- TEAM COLOR PICKER -->
+  <div class="screen" id="screen-teamcolor">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-teamcolor"><span class="backchevron">‹</span></button>
+      <div class="title">Багийн өнгө</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="colorgrid" id="teamcolor-grid"></div>
+  </div>
+
+  <!-- PLAYER NUMBER GRID PICKER -->
+  <div class="screen" id="screen-numgrid">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-numgrid"><span class="backchevron">‹</span></button>
+      <div class="title">Player #'s</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="numgrid-wrap">
+      <div class="numgrid-count" id="numgrid-count">0 Players Selected</div>
+      <div class="numgrid" id="numgrid"></div>
+    </div>
+  </div>
+
+  <!-- PLAYER INFO FORM -->
+  <div class="screen" id="screen-playerinfo">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-playerinfo"><span class="backchevron">‹</span></button>
+      <div class="title">Player Info</div>
+      <div style="display:flex;gap:14px;padding-right:6px;">
+        <div class="navlink" id="btn-prev-player">Prev</div>
+        <div class="navlink" id="btn-next-player">Next</div>
+      </div>
+    </div>
+    <div class="list">
+      <div class="photopicker" id="photopicker-playerinfo">
+        <span class="camicon" id="photopicker-icon">📷</span>
+      </div>
+      <input type="file" accept="image/*" id="inp-playerphoto" style="display:none;">
+      <div class="photopicker-label" id="photopicker-label-text">Зураг нэмэх</div>
+      <div id="player-mvp-badge" style="text-align:center;padding-bottom:14px;display:none;"></div>
+      <div id="player-injury-risk" style="padding:0 16px 14px;display:none;"></div>
+      <div id="player-transfer-history" style="padding:0 16px 14px;display:none;"></div>
+      <div class="section-head">REQUIRED</div>
+      <div class="form-row" id="row-playernum">
+        <div class="flbl">Player #</div>
+        <div class="fval"><span id="val-playernum">#0</span><span class="backchevron" style="transform:scaleX(-1);font-size:20px;">‹</span></div>
+      </div>
+      <div class="section-head">OPTIONAL</div>
+      <div class="form-row"><div class="flbl">First Name</div><input type="text" id="inp-firstname" placeholder=""></div>
+      <div class="form-row"><div class="flbl">Last Name</div><input type="text" id="inp-lastname" placeholder=""></div>
+      <div class="form-row" id="row-yeargrade">
+        <div class="flbl">Year/Grade</div>
+        <div class="fval"><span id="val-yeargrade"></span><span class="backchevron" style="transform:scaleX(-1);font-size:20px;">‹</span></div>
+      </div>
+      <div class="form-row" id="row-position">
+        <div class="flbl">Position</div>
+        <div class="fval"><span id="val-position">OH</span><span class="backchevron" style="transform:scaleX(-1);font-size:20px;">‹</span></div>
+      </div>
+      <div class="form-row">
+        <div class="flbl">Status</div>
+        <div class="seg" id="seg-status">
+          <div data-v="Active" class="on">Active</div><div data-v="Inactive">Inactive</div>
+        </div>
+      </div>
+      <div class="form-row" id="row-inactive-reason" style="display:none;">
+        <div class="flbl" style="font-size:15px;">Шалтгаан</div>
+        <div class="fval"><span id="val-inactive-reason">Сонгоогүй</span><span class="backchevron" style="transform:scaleX(-1);font-size:20px;">‹</span></div>
+      </div>
+      <div class="bigbtn secondary" style="background:#5856D6;" id="btn-player-statshistory">📈 Тоглолтын статистик харах</div>
+      <div class="bigbtn secondary" style="background:#FF9500;" id="btn-player-transfer">🔁 Бусад багт шилжүүлэх</div>
+      <div class="bigbtn" id="btn-save-player">Save Player</div>
+    </div>
+  </div>
+
+  <!-- PLAYER STATS HISTORY -->
+  <div class="screen" id="screen-playerstats">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-playerstats"><span class="backchevron">‹</span></button>
+      <div class="title">Статистик</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="list" id="playerstats-wrap"></div>
+  </div>
+
+  <!-- POSITION PICKER -->
+  <div class="screen" id="screen-position">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-position"><span class="backchevron">‹</span></button>
+      <div class="title">Position</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="list" id="position-list"></div>
+  </div>
+
+  <!-- TEAM PICKER (for new match) -->
+  <div class="screen" id="screen-teampicker">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-teampicker"><span class="backchevron">‹</span></button>
+      <div class="title" id="teampicker-title">Select Team</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="list" id="teampicker-list"></div>
+  </div>
+
+  <!-- MATCH PREVIEW -->
+  <div class="screen" id="screen-match-preview">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-match-preview"><span class="backchevron">‹</span></button>
+      <div class="title">Тоглолтын урьдчилсан харагдац</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="list" id="match-preview-wrap"></div>
+    <div class="bigbtn" id="btn-match-preview-start">Тоглолт эхлүүлэх →</div>
+  </div>
+
+  <!-- LIVE SCORING -->
+  <div class="screen" id="screen-live">
+    <div class="live-top">
+      <button class="iconbtn" id="btn-menu-live" style="width:34px;"><div class="hamburger"><span></span><span></span><span></span></div></button>
+      <div class="teamname" id="live-home-name">(H) Home</div>
+      <div class="tol">TOL<div class="tolnum" id="live-home-tol">2</div></div>
+      <div class="tol">TOL<div class="tolnum" id="live-away-tol">2</div></div>
+      <div class="teamname" id="live-away-name" style="text-align:right;">(A) Away</div>
+    </div>
+    <div class="clockrow" id="clockrow"></div>
+    <div class="rotationrow" id="rotationrow"></div>
+    <div class="live-body">
+      <div class="btncol" id="home-btncol">
+        <div class="btn point" data-side="home" data-action="point">POINT</div>
+        <div class="row2">
+          <div class="btn serve" data-side="home" data-action="serve">SERVE</div>
+          <div class="btn attack" data-side="home" data-action="attack">ATTACK</div>
+        </div>
+        <div class="row2">
+          <div class="btn block" data-side="home" data-action="block">BLOCK</div>
+          <div class="btn dig" data-side="home" data-action="dig">DIG</div>
+        </div>
+        <div class="row2">
+          <div class="btn error" data-side="home" data-action="error">ERROR</div>
+          <div class="btn assist" data-side="home" data-action="assist">ASSIST</div>
+        </div>
+        <div class="row2">
+          <div class="btn sub" data-side="home" id="btn-sub-home">SUB</div>
+          <div class="btn timeout" data-side="home" data-action="timeout">TIME<br>OUT</div>
+        </div>
+      </div>
+      <div class="logpanel" id="logpanel"></div>
+      <div class="btncol" id="away-btncol">
+        <div class="btn point" data-side="away" data-action="point">POINT</div>
+        <div class="row2">
+          <div class="btn serve" data-side="away" data-action="serve">SERVE</div>
+          <div class="btn attack" data-side="away" data-action="attack">ATTACK</div>
+        </div>
+        <div class="row2">
+          <div class="btn block" data-side="away" data-action="block">BLOCK</div>
+          <div class="btn dig" data-side="away" data-action="dig">DIG</div>
+        </div>
+        <div class="row2">
+          <div class="btn error" data-side="away" data-action="error">ERROR</div>
+          <div class="btn assist" data-side="away" data-action="assist">ASSIST</div>
+        </div>
+        <div class="row2">
+          <div class="btn timeout" data-side="away" data-action="timeout">TIME<br>OUT</div>
+          <div class="btn sub" data-side="away" id="btn-sub-away">SUB</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LINEUP SETUP -->
+  <div class="screen" id="screen-lineup">
+    <div class="topbar">
+      <div style="width:44px"></div>
+      <div class="title" id="lineup-title">Starting Lineup</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="lineup-teamname" id="lineup-teamname">Team</div>
+    <div class="lineup-sub">Байрлал бүр дээр дарж тоглогч сонгоно уу (P1 = Server)</div>
+    <div id="lineup-ai-note" style="padding:0 16px 8px;display:none;"></div>
+    <div class="lineup-grid" id="lineup-grid"></div>
+    <div class="lineup-actions" style="padding-bottom:0;">
+      <div class="bigbtn secondary" id="btn-lineup-autofill" style="font-size:14px;line-height:1.3;">🤖 AI зөвлөмж<br><span style="font-weight:400;font-size:11px;">2OH/1OPP/2MID/1S/1Dig</span></div>
+    </div>
+    <div class="lineup-actions" style="padding-top:0;">
+      <div class="bigbtn secondary" id="btn-lineup-optimal-rotation" style="font-size:14px;line-height:1.3;background:#5856D6;">🔄 Оновчтой Rotation<br><span style="font-weight:400;font-size:11px;">Setter/Opp 3-р байранд эсрэг</span></div>
+      <div class="bigbtn" id="btn-lineup-next">Дараах →</div>
+    </div>
+  </div>
+
+
+  <!-- LEAGUE LIST -->
+  <div class="screen" id="screen-leagues">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-menu-leagues"><div class="hamburger"><span></span><span></span><span></span></div></button>
+      <div class="title">League</div>
+      <button class="iconbtn"><div class="plusbtn" id="btn-add-league">+</div></button>
+    </div>
+    <div class="list" id="leagues-list"></div>
+  </div>
+
+  <!-- CREATE LEAGUE -->
+  <div class="screen" id="screen-league-create">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-league-create"><span class="backchevron">‹</span></button>
+      <div class="title">Лиг үүсгэх</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="list">
+      <div class="form-row"><div class="flbl">Лигийн нэр</div><input type="text" id="inp-league-name" placeholder="VNL 2026"></div>
+      <div class="form-row">
+        <div class="flbl" style="font-size:15px;">Тэмцээний хэлбэр</div>
+        <div class="seg" id="seg-league-format">
+          <div data-v="roundrobin" class="on">7 хоног + Playoff</div><div data-v="pvp">PvP Knockout</div>
+        </div>
+      </div>
+      <div class="section-head">ӨМНӨХ ЛИГЭЭС БАГУУД АВАХ (СОНГОЛТ)</div>
+      <div class="list-row" id="row-league-source">
+        <div class="lname" style="font-weight:400;font-size:17px;">Эх лиг</div>
+        <div class="lsub" id="val-league-source">Сонгоогүй ›</div>
+      </div>
+      <div class="form-row" id="row-league-carryscore" style="display:none;">
+        <div class="flbl" style="font-size:15px;">Хуримтлагдсан оноог дамжуулах</div>
+        <div class="seg" id="seg-carryscore">
+          <div data-v="yes" class="on">Тийм</div><div data-v="no">Үгүй</div>
+        </div>
+      </div>
+      <div class="section-head">БАГ СОНГОХ</div>
+      <div id="league-create-teamlist"></div>
+    </div>
+    <div class="bigbtn" id="btn-league-create-confirm">Лиг үүсгэх</div>
+  </div>
+
+  <!-- LEAGUE DETAIL -->
+  <div class="screen" id="screen-league-detail">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-league-detail"><span class="backchevron">‹</span></button>
+      <div class="title" id="league-detail-title">League</div>
+      <button class="iconbtn" id="btn-league-delete" style="color:var(--red);font-size:20px;">🗑</button>
+    </div>
+    <div style="display:flex;gap:10px;padding:10px 14px 0;">
+      <div class="bigbtn" style="margin:0;flex:1;" id="btn-league-startmatch">Тоглолт эхлүүлэх</div>
+      <div class="bigbtn secondary" style="margin:0;flex:1;" id="btn-league-advanceweek">Долоо хоног дуусгах →</div>
+    </div>
+    <div class="bigbtn secondary" style="margin:6px 16px 0;" id="btn-league-nextleague">Дараагийн лиг үүсгэх (оноогоор)</div>
+    <div class="lineup-sub" id="league-week-label" style="padding-top:8px;">7 хоног 1</div>
+    <div class="league-tabs">
+      <div class="league-tab active" id="tab-league-grid">Grid</div>
+      <div class="league-tab" id="tab-league-standings">Standings</div>
+      <div class="league-tab" id="tab-league-fixtures">Fixtures</div>
+      <div class="league-tab" id="tab-league-players">Players</div>
+      <div class="league-tab" id="tab-league-bestxi">Best-XI</div>
+    </div>
+    <div class="league-grid-wrap" id="league-grid-wrap"></div>
+  </div>
+
+  <!-- HEAD-TO-HEAD: PICK TWO TEAMS -->
+  <div class="screen" id="screen-h2h-picker">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-h2h-picker"><span class="backchevron">‹</span></button>
+      <div class="title">Head-to-Head</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="list">
+      <div class="pickcard" id="pick-h2h-a">
+        <div class="lbl">Баг A</div>
+        <div class="val" id="pick-h2h-a-val">Баг сонгох ›</div>
+      </div>
+      <div class="pickcard" id="pick-h2h-b">
+        <div class="lbl">Баг B</div>
+        <div class="val" id="pick-h2h-b-val">Баг сонгох ›</div>
+      </div>
+      <div class="bigbtn disabled" id="btn-h2h-compare">Харьцуулах</div>
+    </div>
+  </div>
+
+  <!-- HEAD-TO-HEAD: RESULT DETAIL -->
+  <div class="screen" id="screen-h2h-detail">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-h2h-detail"><span class="backchevron">‹</span></button>
+      <div class="title">Head-to-Head</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="list" id="h2h-detail-wrap"></div>
+  </div>
+
+  <!-- ALL-TIME RECORDS -->
+  <div class="screen" id="screen-records">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-records"><span class="backchevron">‹</span></button>
+      <div class="title">All-Time Records</div>
+      <div style="width:44px"></div>
+    </div>
+    <div class="list" id="records-wrap"></div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="screen" id="screen-search">
+    <div class="topbar">
+      <button class="iconbtn" id="btn-back-search"><span class="backchevron">‹</span></button>
+      <div class="title">Хайх</div>
+      <div style="width:44px"></div>
+    </div>
+    <div style="padding:10px 14px;">
+      <input type="text" id="inp-search" placeholder="Баг, тоглогч, тоглолт хайх..." style="width:100%;padding:12px 14px;border:1px solid #C7C7CC;border-radius:10px;font-size:16px;background:#F2F1F6;">
+    </div>
+    <div class="list" id="search-results"></div>
+  </div>
+
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar-dim"></div>
+<div id="sidebar">
+  <div class="sbhead"><div class="logo">🏐</div><div class="title">Scorebook+</div></div>
+  <div class="menu-row" id="nav-newmatch">New Match</div>
+  <div class="menu-row" id="nav-search">🔍 Хайх</div>
+  <div class="menu-row" id="nav-manageteams">Manage Teams</div>
+  <div class="menu-row" id="nav-savedmatches">Saved Matches</div>
+  <div class="menu-row" id="nav-leagues">League</div>
+  <div class="menu-row" id="nav-h2h">Head-to-Head</div>
+  <div class="menu-row" id="nav-records">🏛️ All-Time Records</div>
+  <div class="menu-spacer"></div>
+  <div class="menu-row" id="nav-external">External Scoreboard</div>
+  <div class="menu-row" id="nav-moreapps">More Apps</div>
+  <div class="menu-row" id="nav-contact">Contact Us</div>
+</div>
+
+<!-- LIVE IN-GAME MENU (End Match / Complete Set) -->
+<div id="livemenu-dim" class="sheet-overlay"></div>
+<div id="livemenu-sidebar" style="position:fixed;top:0;left:0;bottom:0;width:60%;max-width:280px;background:#fff;transform:translateX(-100%);transition:transform .2s;z-index:91;display:flex;flex-direction:column;">
+  <div class="menu-row" id="nav-livematchstats">Match Stats</div>
+  <div class="menu-row" id="nav-endmatch">End Match</div>
+  <div class="menu-row" id="nav-completeset">Complete Set</div>
+  <div class="menu-row" id="nav-exitlive">Exit (Save &amp; Continue Later)</div>
+</div>
+
+<!-- STATS MODAL -->
+<div class="stat-modal" id="stat-modal">
+  <div class="stat-head">
+    <button class="circlebtn" id="btn-stats-back">‹</button>
+    <div class="stat-title">Single Match Stats</div>
+    <div class="stat-tabs" id="stat-tabs"></div>
+    <button class="circlebtn">?</button>
+    <button class="circlebtn x" id="btn-stats-close">✕</button>
+  </div>
+  <div id="ai-commentary-banner" style="padding:10px 14px 0;display:none;"></div>
+  <div id="mvp-banner" style="padding:10px 14px;text-align:center;display:none;"></div>
+  <div class="stat-table-wrap">
+    <table class="stats" id="stats-table"></table>
+    <div id="training-focus-wrap" style="padding:14px;display:none;"></div>
+  </div>
+  <div class="bigbtn" style="background:var(--orange);" id="btn-pick-mvp">🏆 Шигшээ тоглогч (MVP) сонгох</div>
+</div>
+
+<!-- EDIT ACTION (DETAILS) MODAL -->
+<div class="stat-modal" id="editaction-modal">
+  <div style="padding:16px 14px 8px;display:flex;align-items:center;gap:10px;">
+    <div class="bigbtn" style="margin:0;background:var(--red);padding:12px 18px;font-size:16px;border-radius:10px;flex:0 0 auto;" id="editaction-delete">Delete</div>
+    <div id="editaction-teamtabs" class="stat-tabs" style="flex:1;height:46px;margin:0;"></div>
+    <div class="bigbtn" style="margin:0;background:var(--blue);padding:12px 22px;font-size:16px;border-radius:10px;flex:0 0 auto;" id="editaction-done">Done</div>
+  </div>
+  <div style="text-align:center;font-size:24px;font-weight:800;padding:4px 0 10px;" id="editaction-title">Attack: Edit Details</div>
+  <div id="editaction-playergrid" style="display:flex;flex-wrap:wrap;gap:12px;padding:8px 14px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;align-content:flex-start;"></div>
+  <div id="editaction-subactions" class="stat-tabs" style="margin:14px;height:60px;"></div>
+</div>
+
+<!-- BOTTOM SHEET (player picker / sub action) -->
+<div class="sheet-overlay" id="sheet-overlay"></div>
+<div class="sheet" id="sheet">
+  <div class="shead" id="sheet-title">Pick</div>
+  <div class="slist" id="sheet-list"></div>
+  <div class="scancel" id="sheet-cancel">Cancel</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- CUSTOM CONFIRM DIALOG (replaces native confirm() which is blocked in sandboxed iframe previews) -->
+<div class="dlg-overlay" id="confirm-overlay">
+  <div class="dlg-box">
+    <div class="dlg-msg" id="confirm-msg">Confirm?</div>
+    <div class="dlg-btns">
+      <div class="dlg-btn" id="confirm-cancel">Цуцлах</div>
+      <div class="dlg-btn destructive" id="confirm-ok">Тийм</div>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM PROMPT DIALOG (replaces native prompt()) -->
+<div class="dlg-overlay" id="prompt-overlay">
+  <div class="dlg-box">
+    <div class="dlg-msg" id="prompt-msg">Enter value</div>
+    <input type="text" class="dlg-input" id="prompt-input">
+    <div class="dlg-btns">
+      <div class="dlg-btn" id="prompt-cancel">Цуцлах</div>
+      <div class="dlg-btn" id="prompt-ok">Хадгалах</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- GLOBAL ERROR SAFETY NET ---------- */
+window.addEventListener('error', function(e){
+  try{
+    var t = document.getElementById('toast');
+    if(t){
+      t.textContent = 'Алдаа гарлаа, дахин оролдоно уу';
+      t.style.display = 'block';
+      setTimeout(function(){ t.style.display='none'; }, 2000);
+    }
+  }catch(err){}
+});
+
+/* ---------- TAP HELPER (iOS Safari safe) ---------- */
+function onTap(el, fn){
+  if(!el) return;
+  let touched = false;
+  el.addEventListener('touchstart', function(){ /* enable :active feel */ }, {passive:true});
+  el.addEventListener('touchend', function(e){
+    touched = true;
+    e.preventDefault();
+    fn(e);
+    setTimeout(function(){ touched = false; }, 400);
+  }, {passive:false});
+  el.addEventListener('click', function(e){
+    if(touched) return;
+    fn(e);
+  });
+}
+
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._h);
+  t._h = setTimeout(function(){ t.style.display='none'; }, 1600);
+}
+
+/* ---------- CUSTOM CONFIRM / PROMPT (native confirm()/prompt() are blocked inside sandboxed artifact iframes) ---------- */
+var confirmOverlay = document.getElementById('confirm-overlay');
+var confirmMsgEl = document.getElementById('confirm-msg');
+var confirmYesCb = null;
+function customConfirm(message, onYes){
+  confirmMsgEl.textContent = message;
+  confirmYesCb = onYes;
+  confirmOverlay.classList.add('show');
+}
+onTap(document.getElementById('confirm-cancel'), function(){ confirmOverlay.classList.remove('show'); confirmYesCb=null; });
+onTap(document.getElementById('confirm-ok'), function(){
+  confirmOverlay.classList.remove('show');
+  var cb = confirmYesCb; confirmYesCb=null;
+  if(cb) cb();
+});
+
+var promptOverlay = document.getElementById('prompt-overlay');
+var promptMsgEl = document.getElementById('prompt-msg');
+var promptInputEl = document.getElementById('prompt-input');
+var promptOkCb = null;
+function customPrompt(message, defaultValue, onOk){
+  promptMsgEl.textContent = message;
+  promptInputEl.value = defaultValue!==undefined && defaultValue!==null ? defaultValue : '';
+  promptOkCb = onOk;
+  promptOverlay.classList.add('show');
+  setTimeout(function(){ promptInputEl.focus(); }, 50);
+}
+onTap(document.getElementById('prompt-cancel'), function(){ promptOverlay.classList.remove('show'); promptOkCb=null; });
+onTap(document.getElementById('prompt-ok'), function(){
+  var val = promptInputEl.value;
+  promptOverlay.classList.remove('show');
+  var cb = promptOkCb; promptOkCb=null;
+  if(cb) cb(val);
+});
+
+
+/* ---------- DATA LAYER ---------- */
+var DB_KEY = 'scorebookplus_db_v1';
+var DB = null;
+var TEAM_COLORS = ['#3478F6','#FF3B30','#FF9F0A','#FFD60A','#34C759','#5AC8FA','#BF5AF2','#FF3CAC','#8E8E93','#A2845E','#00C7BE','#D6004C'];
+
+function uid(){ return Math.random().toString(36).slice(2,10); }
+
+/* NOTE: browser storage (localStorage) is blocked inside Claude's sandboxed
+   artifact preview, so we feature-detect it. When this file is hosted
+   normally (e.g. GitHub Pages, or opened as a local file / on any real
+   website), localStorage works fine and data persists offline between
+   sessions. Inside the sandboxed preview we transparently fall back to an
+   in-memory store for that session only. */
+var storageAvailable = (function(){
+  try{
+    var testKey = '__sb_storage_test__';
+    localStorage.setItem(testKey, '1');
+    localStorage.removeItem(testKey);
+    return true;
+  }catch(e){
+    return false;
+  }
+})();
+var memoryDB = null;
+function persistRaw(dbObj){
+  if(storageAvailable){
+    try{ localStorage.setItem(DB_KEY, JSON.stringify(dbObj)); return; }catch(e){ /* quota or other error, fall back below */ }
+  }
+  memoryDB = dbObj;
+}
+function migrateDB(db){
+  if(!db.playerTotals) db.playerTotals = {};
+  if(!db.leaderboardCutoff) db.leaderboardCutoff = 8;
+  if(!db.leagues) db.leagues = [];
+  (db.teams||[]).forEach(function(t, idx){
+    if(!t.color) t.color = TEAM_COLORS[idx % TEAM_COLORS.length];
+    if(t.mmr===undefined) t.mmr = 0;
+    if(t.mmrWins===undefined) t.mmrWins = 0;
+    if(t.mmrLosses===undefined) t.mmrLosses = 0;
+    if(t.logo===undefined) t.logo = null;
+    (t.players||[]).forEach(function(p){
+      if(p.photo===undefined) p.photo = null;
+      if(p.inactiveNote===undefined) p.inactiveNote = '';
+      if(p.transferHistory===undefined) p.transferHistory = null;
+    });
+  });
+  (db.leagues||[]).forEach(function(l){ if(!l.fixtures) l.fixtures = []; });
+}
+function loadDB(){
+  if(storageAvailable){
+    try{
+      var raw = localStorage.getItem(DB_KEY);
+      if(raw){
+        var db = JSON.parse(raw);
+        migrateDB(db);
+        return db;
+      }
+    }catch(e){}
+  } else if(memoryDB){
+    return memoryDB;
+  }
+  return seedDB();
+}
+function saveDB(){
+  try{ persistRaw(DB); }catch(e){}
+}
+function seedDB(){
+  var teamSeed = [
+    ["Ara Apex",14],["Cu",16],["Falcons",10],["Hobby Ace",16],
+    ["Hoh Tolbo",15],["Niilberrr",16],["Selenge Bodons",12],["Uchiha",14]
+  ];
+  var positions = ["OH","MB","OPP","S","L","DS"];
+  var teams = teamSeed.map(function(t, ti){
+    var players = [];
+    for(var i=0;i<t[1];i++){
+      players.push({
+        id: uid(), number: i+1, firstName: "", lastName: "", year:"",
+        position: positions[i % positions.length], status:"Active", photo:null, inactiveReason:null, inactiveNote:'',
+        transferHistory: null
+      });
+    }
+    return {id: uid(), name: t[0], players: players, color: TEAM_COLORS[ti % TEAM_COLORS.length], mmr:0, mmrWins:0, mmrLosses:0, logo:null};
+  });
+  var db = {teams: teams, matches: [], playerTotals: {}, leaderboardCutoff: 8, leagues: []};
+  persistRaw(db);
+  return db;
+}
+DB = loadDB();
+
+/* ---------- GLOBAL LEADERBOARD TOTALS ---------- */
+function bumpTotal(playerId, keys){
+  if(!DB.playerTotals[playerId]){
+    DB.playerTotals[playerId] = {kills:0,atkE:0,totAtk:0,aces:0,srvE:0,digs:0,blk:0,asst:0,asstE:0};
+  }
+  var rec = DB.playerTotals[playerId];
+  Object.keys(keys).forEach(function(k){ rec[k] = (rec[k]||0) + keys[k]; });
+  saveDB();
+}
+/* ---------- TEAM MMR (starts at 0, Elo-style: beating a higher-ranked
+   team gains more, beating a weaker team gains less) ---------- */
+var TEAM_MMR_START = 0;
+var TEAM_MMR_K = 24;
+function ensureTeamMmr(team){
+  if(team.mmr===undefined) team.mmr = TEAM_MMR_START;
+  if(team.mmrWins===undefined) team.mmrWins = 0;
+  if(team.mmrLosses===undefined) team.mmrLosses = 0;
+  return team.mmr;
+}
+function updateTeamMmrForMatch(winningTeam, losingTeam){
+  ensureTeamMmr(winningTeam);
+  ensureTeamMmr(losingTeam);
+  // shift both ratings up so the logistic curve behaves the same as a
+  // normal Elo scale (which assumes ratings around 1000-2000), then shift back
+  var SHIFT = 1000;
+  var winR = winningTeam.mmr + SHIFT;
+  var loseR = losingTeam.mmr + SHIFT;
+  var expectedWin = 1 / (1 + Math.pow(10, (loseR - winR) / 400));
+  var delta = Math.round(TEAM_MMR_K * (1 - expectedWin));
+  delta = Math.max(8, delta);
+  winningTeam.mmr = winningTeam.mmr + delta;
+  losingTeam.mmr = Math.max(0, losingTeam.mmr - delta);
+  winningTeam.mmrWins = (winningTeam.mmrWins||0) + 1;
+  losingTeam.mmrLosses = (losingTeam.mmrLosses||0) + 1;
+  saveDB();
+}
+/* When a player transfers to a new team: the old team loses a share of its
+   MMR equal to 1/(old team's roster size before the transfer), and the new
+   team gains that exact same amount. E.g. a 10-player team loses 1/10 (10%)
+   of its MMR per player transferred out; the receiving team gains that 10%. */
+function transferPlayerMmr(oldTeam, newTeam){
+  ensureTeamMmr(oldTeam);
+  ensureTeamMmr(newTeam);
+  var oldRosterSize = Math.max(1, oldTeam.players.length); // roster size BEFORE removing the player
+  var share = oldTeam.mmr / oldRosterSize;
+  oldTeam.mmr = Math.max(0, Math.round(oldTeam.mmr - share));
+  newTeam.mmr = Math.max(0, Math.round(newTeam.mmr + share));
+  saveDB();
+  return {lost: Math.round(share), gained: Math.round(share)};
+}
+function findPlayerAndTeamById(playerId){
+  for(var i=0;i<DB.teams.length;i++){
+    var p = DB.teams[i].players.find(function(pl){return pl.id===playerId;});
+    if(p) return {player:p, team:DB.teams[i]};
+  }
+  return null;
+}
+function playerDisplayName(p, team){
+  var nm = ((p.firstName||'')+' '+(p.lastName||'')).trim();
+  if(!nm) nm = '#'+p.number;
+  return nm+' (#'+p.number+(team?', '+team.name:'')+')';
+}
+function playerShortName(p){
+  return ((p.firstName||'')+' '+(p.lastName||'')).trim() || ('#'+p.number);
+}
+/* ---------- ALL-TIME RECORDS ---------- */
+function computeAllTimeRecords(){
+  var records = [];
+
+  function topPlayerByStat(statKey, label, icon){
+    var bestId=null, bestVal=-1;
+    Object.keys(DB.playerTotals).forEach(function(pid){
+      var v = DB.playerTotals[pid][statKey]||0;
+      if(v>bestVal){ bestVal=v; bestId=pid; }
+    });
+    if(!bestId || bestVal<=0) return null;
+    var found = findPlayerAndTeamById(bestId);
+    if(!found) return null;
+    return {icon:icon, label:label, name:'#'+found.player.number+' '+playerShortName(found.player), sub:found.team.name, value:bestVal, player:found.player, team:found.team};
+  }
+  [
+    {key:'kills', label:'Хамгийн олон Kill (нийт)', icon:'💥'},
+    {key:'aces', label:'Хамгийн олон Ace (нийт)', icon:'🎯'},
+    {key:'blk', label:'Хамгийн олон Block (нийт)', icon:'🧱'},
+    {key:'asst', label:'Хамгийн олон Assist (нийт)', icon:'🤝'},
+    {key:'digs', label:'Хамгийн олон Dig (нийт)', icon:'🛡️'},
+    {key:'mvpCount', label:'Хамгийн олон Match MVP', icon:'🏆'}
+  ].forEach(function(sm){
+    var r = topPlayerByStat(sm.key, sm.label, sm.icon);
+    if(r) records.push(r);
+  });
+
+  // Single-match kills record
+  var bestMatchKills = null;
+  DB.matches.forEach(function(m){
+    if(!m.completed) return;
+    [{obj:m.statsHome, teamName:m.homeTeamName, teamId:m.homeTeamId},{obj:m.statsAway, teamName:m.awayTeamName, teamId:m.awayTeamId}].forEach(function(side){
+      if(!side.obj) return;
+      Object.keys(side.obj).forEach(function(pid){
+        var k = side.obj[pid].kills||0;
+        if(!bestMatchKills || k>bestMatchKills.value){
+          var team = DB.teams.find(function(t){return t.id===side.teamId;});
+          var p = team ? team.players.find(function(pl){return pl.id===pid;}) : null;
+          bestMatchKills = {value:k, teamName:side.teamName, playerObj:p};
+        }
+      });
+    });
+  });
+  if(bestMatchKills && bestMatchKills.value>0){
+    records.push({
+      icon:'⚡', label:'Ганц тоглолтод хамгийн олон Kill',
+      name: bestMatchKills.playerObj ? ('#'+bestMatchKills.playerObj.number+' '+playerShortName(bestMatchKills.playerObj)) : '?',
+      sub: bestMatchKills.teamName, value: bestMatchKills.value
+    });
+  }
+
+  // Biggest win margin (total point differential across sets)
+  var biggestMargin = null;
+  DB.matches.forEach(function(m){
+    if(!m.completed || !m.sets || m.sets.length===0) return;
+    var margin = m.sets.reduce(function(s,set){ return s+Math.abs(set.home-set.away); },0);
+    if(!biggestMargin || margin>biggestMargin.value){
+      biggestMargin = {value:margin, line:m.homeTeamName+' '+m.homeSets+'-'+m.awaySets+' '+m.awayTeamName};
+    }
+  });
+  if(biggestMargin){
+    records.push({icon:'🔥', label:'Хамгийн том давуу ялалт', name:biggestMargin.line, sub:'нийт '+biggestMargin.value+' оноогийн зөрүү', value:biggestMargin.value});
+  }
+
+  // Longest win streak (team)
+  var longestStreak = null;
+  DB.teams.forEach(function(team){
+    var matches = DB.matches.filter(function(m){
+      return m.completed && (m.homeTeamId===team.id || m.awayTeamId===team.id);
+    }).sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
+    var curStreak=0, maxStreak=0;
+    matches.forEach(function(m){
+      var won = (m.homeTeamId===team.id) ? (m.homeSets>m.awaySets) : (m.awaySets>m.homeSets);
+      if(won){ curStreak++; if(curStreak>maxStreak) maxStreak=curStreak; }
+      else curStreak=0;
+    });
+    if(maxStreak>0 && (!longestStreak || maxStreak>longestStreak.value)){
+      longestStreak = {value:maxStreak, team:team};
+    }
+  });
+  if(longestStreak){
+    records.push({icon:'🔗', label:'Хамгийн урт ялалтын streak', name:longestStreak.team.name, sub:longestStreak.value+' тоглолт дараалан хожсон', value:longestStreak.value, team:longestStreak.team});
+  }
+
+  // Highest team MMR currently
+  var highestMmrTeam = null;
+  DB.teams.forEach(function(t){
+    if(!highestMmrTeam || (t.mmr||0)>highestMmrTeam.mmr){ highestMmrTeam = {team:t, mmr:t.mmr||0}; }
+  });
+  if(highestMmrTeam && highestMmrTeam.mmr>0){
+    records.push({icon:'👑', label:'Одоогийн хамгийн өндөр MMR', name:highestMmrTeam.team.name, sub:highestMmrTeam.mmr+' MMR', value:highestMmrTeam.mmr, team:highestMmrTeam.team});
+  }
+
+  return records;
+}
+function openRecords(){
+  var wrap = document.getElementById('records-wrap');
+  var records = computeAllTimeRecords();
+  if(records.length===0){
+    wrap.innerHTML = '<div class="emptystate">Хараахан тоглолт бүртгэгдээгүй байна.</div>';
+    showScreen('screen-records');
+    return;
+  }
+  var html = '';
+  records.forEach(function(r){
+    var avatarHtml = r.player ? playerAvatarHtml(r.player, r.team, 'small') : (r.team ? teamAvatarHtml(r.team, 'small') : '<span style="font-size:22px;">'+r.icon+'</span>');
+    html += '<div class="list-row"><div style="display:flex;align-items:center;gap:12px;">'+
+      '<div style="font-size:20px;">'+r.icon+'</div>'+avatarHtml+
+      '<div><div class="lname" style="font-size:15px;">'+escapeHtml(r.name)+'</div>'+
+      '<div class="lsub" style="font-size:12px;">'+escapeHtml(r.label)+' · '+escapeHtml(r.sub)+'</div></div></div>'+
+      '<div class="lname" style="font-size:20px;color:var(--blue);">'+r.value+'</div></div>';
+  });
+  wrap.innerHTML = html;
+  showScreen('screen-records');
+}
+onTap(document.getElementById('btn-back-records'), function(){ renderTeamsList(); showScreen('screen-teams'); });
+function teamInitials(name){
+  var words = (name||'').trim().split(/\s+/);
+  if(words.length>=2) return (words[0][0]+words[1][0]).toUpperCase();
+  return (name||'?').slice(0,2).toUpperCase();
+}
+function resizeImageDataUrl(dataUrl, maxSize, callback){
+  try{
+    var img = new Image();
+    img.onload = function(){
+      try{
+        var w = img.width, h = img.height;
+        var scale = Math.min(1, maxSize / Math.max(w, h));
+        var cw = Math.max(1, Math.round(w * scale));
+        var ch = Math.max(1, Math.round(h * scale));
+        var canvas = document.createElement('canvas');
+        canvas.width = cw; canvas.height = ch;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, cw, ch);
+        var out = canvas.toDataURL('image/jpeg', 0.8);
+        callback(out);
+      }catch(err){
+        callback(dataUrl);
+      }
+    };
+    img.onerror = function(){ callback(dataUrl); };
+    img.src = dataUrl;
+  }catch(e){
+    callback(dataUrl);
+  }
+}
+function playerAvatarHtml(p, team, sizeCls){
+  var cls = 'avatar'+(sizeCls?(' '+sizeCls):'');
+  if(p.photo){
+    return '<div class="'+cls+'"><img src="'+p.photo+'" alt=""></div>';
+  }
+  var bg = (team && team.color) || '#8E8E93';
+  return '<div class="'+cls+'" style="background:'+bg+';">'+p.number+'</div>';
+}
+function teamAvatarHtml(team, sizeCls){
+  var cls = 'avatar'+(sizeCls?(' '+sizeCls):'');
+  if(team.logo){
+    return '<div class="'+cls+'"><img src="'+team.logo+'" alt=""></div>';
+  }
+  return '<div class="'+cls+'" style="background:'+(team.color||'#8E8E93')+';">'+escapeHtml(teamInitials(team.name))+'</div>';
+}
+var POSITION_CATEGORY = {OH:'Oh', OPP:'Opp', MB:'Mid', S:'Set', DS:'Dig', L:'Dig'};
+var CATEGORY_LABELS = {Oh:'Oh (Outside Hitter)', Opp:'Opp (Opposite)', Mid:'Mid (Middle Blocker)', Set:'Set (Setter)', Dig:'Dig (Libero / DS)'};
+var CATEGORY_ORDER = ['Oh','Opp','Mid','Set','Dig'];
+function computeScore(totals){
+  if(!totals) return 0;
+  return (totals.kills||0)+(totals.aces||0)+(totals.blk||0)+(totals.asst||0)+(totals.digs||0);
+}
+var MMR_TIERS = [
+  {min:-9999, label:'Bronze',     color:'#A2845E'},
+  {min:0,     label:'Silver',     color:'#9AA0A6'},
+  {min:80,    label:'Gold',       color:'#FFD60A'},
+  {min:180,   label:'Platinum',   color:'#5AC8FA'},
+  {min:300,   label:'Diamond',    color:'#BF5AF2'},
+  {min:450,   label:'Elite',      color:'#FF3B30'}
+];
+function mmrTier(mmr){
+  var t = MMR_TIERS[0];
+  for(var i=0;i<MMR_TIERS.length;i++){ if(mmr>=MMR_TIERS[i].min) t = MMR_TIERS[i]; }
+  return t;
+}
+/* ---------- FORM GUIDE: last N completed matches W/L for a team ---------- */
+function getTeamFormGuide(teamId, limit){
+  limit = limit || 5;
+  var matches = DB.matches.filter(function(m){
+    return m.completed && (m.homeTeamId===teamId || m.awayTeamId===teamId);
+  }).sort(function(a,b){ return new Date(b.date) - new Date(a.date); }).slice(0, limit);
+  // return oldest-to-newest so the guide reads left-to-right chronologically
+  return matches.reverse().map(function(m){
+    var won = (m.homeTeamId===teamId) ? (m.homeSets>m.awaySets) : (m.awaySets>m.homeSets);
+    return won ? 'W' : 'L';
+  });
+}
+function formGuideHtml(form){
+  if(!form || form.length===0) return '<span style="color:#C7C7CC;font-size:12px;">Тоглолт байхгүй</span>';
+  return form.map(function(r){
+    var color = r==='W' ? 'var(--green)' : 'var(--red)';
+    return '<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:'+color+';color:#fff;font-size:11px;font-weight:800;margin-right:3px;">'+r+'</span>';
+  }).join('');
+}
+var leaderboardPrevRanks = {}; // playerId -> previous rank index, per category, for arrow indicators
+function rankArrowHtml(prevIdx, curIdx){
+  if(prevIdx===undefined || prevIdx===null) return '<span style="color:#C7C7CC;font-size:13px;">–</span>';
+  if(curIdx < prevIdx) return '<span style="color:var(--green);font-weight:900;font-size:15px;">▲'+(prevIdx-curIdx)+'</span>';
+  if(curIdx > prevIdx) return '<span style="color:var(--red);font-weight:900;font-size:15px;">▼'+(curIdx-prevIdx)+'</span>';
+  return '<span style="color:#C7C7CC;font-size:13px;">–</span>';
+}
+/* ---------- PLAYER OF THE WEEK / MONTH ---------- */
+function computePlayerOfPeriod(days){
+  var cutoff = new Date(Date.now() - days*24*3600*1000);
+  var totals = {};
+  DB.matches.forEach(function(m){
+    if(!m.completed) return;
+    if(new Date(m.date) < cutoff) return;
+    [m.statsHome, m.statsAway].forEach(function(statsObj){
+      if(!statsObj) return;
+      Object.keys(statsObj).forEach(function(pid){
+        var s = statsObj[pid];
+        if(!totals[pid]) totals[pid] = {kills:0,aces:0,blk:0,asst:0,digs:0,matches:0};
+        totals[pid].kills += (s.kills||0);
+        totals[pid].aces += (s.aces||0);
+        totals[pid].blk += (s.blk||0);
+        totals[pid].asst += (s.asst||0);
+        totals[pid].digs += (s.digs||0);
+        totals[pid].matches += 1;
+      });
+    });
+  });
+  var bestId=null, bestScore=-1;
+  Object.keys(totals).forEach(function(pid){
+    var t = totals[pid];
+    var score = t.kills+t.aces+t.blk+t.asst+t.digs;
+    if(score>bestScore){ bestScore=score; bestId=pid; }
+  });
+  if(!bestId || bestScore<=0) return null;
+  var found = findPlayerAndTeamById(bestId);
+  if(!found) return null;
+  return {player:found.player, team:found.team, score:bestScore, stats:totals[bestId]};
+}
+function playerOfPeriodCardHtml(label, badge, data){
+  if(!data){
+    return '<div style="flex:1;background:#F2F1F6;border-radius:14px;padding:14px;text-align:center;">'+
+      '<div style="font-size:12px;color:#8A8A8E;font-weight:700;margin-bottom:6px;">'+label+'</div>'+
+      '<div class="lsub">Тоглолт алга</div></div>';
+  }
+  var fullname = ((data.player.firstName||'')+' '+(data.player.lastName||'')).trim() || ('#'+data.player.number);
+  return '<div style="flex:1;background:linear-gradient(135deg,#FFF7E0,#FFEFC2);border-radius:14px;padding:14px;text-align:center;">'+
+    '<div style="font-size:12px;color:#B25E00;font-weight:800;margin-bottom:6px;">'+badge+' '+label+'</div>'+
+    '<div style="display:flex;justify-content:center;margin-bottom:6px;">'+playerAvatarHtml(data.player, data.team, 'small')+'</div>'+
+    '<div class="lname" style="font-size:14px;">'+escapeHtml(fullname)+'</div>'+
+    '<div class="lsub" style="font-size:11px;">'+escapeHtml(data.team.name)+' · '+data.score+' оноо</div>'+
+    '</div>';
+}
+function renderPlayerOfPeriod(){
+  var weekData = computePlayerOfPeriod(7);
+  var monthData = computePlayerOfPeriod(30);
+  return '<div style="display:flex;gap:10px;padding:12px 16px;">'+
+    playerOfPeriodCardHtml('7 ХОНОГИЙН ШИЛДЭГ', '⭐', weekData)+
+    playerOfPeriodCardHtml('САРЫН ШИЛДЭГ', '🏆', monthData)+
+    '</div>';
+}
+
+
+/* ---------- LEAGUE ---------- */
+var currentLeagueId = null;
+var leagueCreateSelectedIds = [];
+var leagueDetailTab = 'grid';
+var WEEK_CUTOFFS = {1:1, 2:2, 3:1};
+
+function ensureLeagueStat(league, teamId){
+  if(!league.pointsTable[teamId]) league.pointsTable[teamId] = {played:0, won:0, points:0};
+  return league.pointsTable[teamId];
+}
+function vnlPoints(winnerSets, loserSets){
+  if(winnerSets===3 && loserSets<=1) return {win:3, lose:0};
+  if(winnerSets===3 && loserSets===2) return {win:2, lose:1};
+  return {win:1, lose:0};
+}
+function applyLeaguePoints(m){
+  var league = DB.leagues.find(function(l){return l.id===m.leagueId;});
+  if(!league) return;
+  var homeWon = m.sets.filter(function(s){return s.home>s.away;}).length;
+  var awayWon = m.sets.filter(function(s){return s.away>s.home;}).length;
+  var hs = ensureLeagueStat(league, m.homeTeam.id);
+  var as = ensureLeagueStat(league, m.awayTeam.id);
+  hs.played++; as.played++;
+  var pts;
+  if(homeWon>awayWon){ pts = vnlPoints(homeWon, awayWon); hs.won++; hs.points+=pts.win; as.points+=pts.lose; }
+  else { pts = vnlPoints(awayWon, homeWon); as.won++; as.points+=pts.win; hs.points+=pts.lose; }
+  saveDB();
+}
+/* Recompute a league's whole win/loss points table from scratch, based on
+   whichever completed matches for that league still exist in DB.matches.
+   Call this after deleting a match so standings stay accurate instead of
+   keeping stale points from a match that no longer exists. */
+function recomputeLeaguePoints(league){
+  league.pointsTable = {};
+  league.teamIds.forEach(function(tid){ ensureLeagueStat(league, tid); });
+  var matches = DB.matches.filter(function(m){ return m.completed && m.leagueId===league.id; })
+    .sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
+  matches.forEach(function(m){
+    var hs = ensureLeagueStat(league, m.homeTeamId);
+    var as = ensureLeagueStat(league, m.awayTeamId);
+    hs.played++; as.played++;
+    var pts;
+    if(m.homeSets>m.awaySets){ pts=vnlPoints(m.homeSets,m.awaySets); hs.won++; hs.points+=pts.win; as.points+=pts.lose; }
+    else { pts=vnlPoints(m.awaySets,m.homeSets); as.won++; as.points+=pts.win; hs.points+=pts.lose; }
+  });
+}
+/* Recompute every team's MMR from scratch by replaying all completed
+   matches in chronological order. Call this after deleting a match so MMR
+   doesn't keep a stale delta from a match that no longer exists. */
+function recomputeAllTeamMmr(){
+  DB.teams.forEach(function(t){ t.mmr = 0; t.mmrWins = 0; t.mmrLosses = 0; });
+  var matches = DB.matches.filter(function(m){ return m.completed; })
+    .sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
+  matches.forEach(function(m){
+    var homeTeam = DB.teams.find(function(t){return t.id===m.homeTeamId;});
+    var awayTeam = DB.teams.find(function(t){return t.id===m.awayTeamId;});
+    if(!homeTeam || !awayTeam) return;
+    var homeWon = m.homeSets > m.awaySets;
+    updateTeamMmrForMatch(homeWon?homeTeam:awayTeam, homeWon?awayTeam:homeTeam);
+  });
+}
+
+function renderLeaguesList(){
+  var wrap = document.getElementById('leagues-list');
+  wrap.innerHTML = '';
+  if(DB.leagues.length===0){
+    wrap.innerHTML = '<div class="emptystate">Лиг алга байна. Дээд талын + товчоор шинэ лиг үүсгэнэ үү.</div>';
+    return;
+  }
+
+  // ---- Dashboard summary across all leagues ----
+  var totalLeagues = DB.leagues.length;
+  var finishedCount = 0, inProgressCount = 0;
+  DB.leagues.forEach(function(lg){
+    var isPvp = lg.format==='pvp';
+    var isFinished = isPvp ? (lg.pvpBracket && lg.pvpBracket.champion) : (lg.playoff && lg.playoff.champion);
+    if(isFinished) finishedCount++; else inProgressCount++;
+  });
+  var summary = document.createElement('div');
+  summary.style.display = 'flex';
+  summary.style.gap = '10px';
+  summary.style.padding = '12px 16px';
+  function statCard(num, label, color){
+    return '<div style="flex:1;background:#F2F1F6;border-radius:12px;padding:12px 8px;text-align:center;">'+
+      '<div style="font-size:22px;font-weight:800;color:'+color+';">'+num+'</div>'+
+      '<div style="font-size:11px;color:#8A8A8E;font-weight:600;">'+label+'</div></div>';
+  }
+  summary.innerHTML =
+    statCard(totalLeagues, 'НИЙТ ЛИГ', '#000') +
+    statCard(inProgressCount, 'ЯВАГДАЖ БАЙГАА', 'var(--blue)') +
+    statCard(finishedCount, 'ДУУССАН', 'var(--green)');
+  wrap.appendChild(summary);
+
+  DB.leagues.forEach(function(lg){
+    var rowWrap = document.createElement('div');
+    rowWrap.style.display = 'flex';
+    rowWrap.style.alignItems = 'stretch';
+
+    var row = document.createElement('div');
+    row.className = 'list-row';
+    row.style.flex = '1';
+    var isPvp = lg.format==='pvp';
+    var isFinished = isPvp ? (lg.pvpBracket && lg.pvpBracket.champion) : (lg.playoff && lg.playoff.champion);
+    var statusDot = '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+(isFinished?'var(--green)':'var(--blue)')+';margin-right:6px;"></span>';
+    var champName = '';
+    if(isFinished){
+      var champId = isPvp ? lg.pvpBracket.champion : lg.playoff.champion;
+      var champTeam = DB.teams.find(function(t){return t.id===champId;});
+      if(champTeam) champName = ' · 🥇 '+escapeHtml(champTeam.name);
+    }
+    var subText = isPvp ?
+      ('🥊 PvP Knockout · '+lg.teamIds.length+' баг'+(isFinished?' · Дууссан'+champName:'')) :
+      (lg.activeTeamIds.length+' баг үлдсэн / '+lg.teamIds.length+' нийт · 7 хоног '+lg.week+(isFinished?champName:''));
+    row.innerHTML = '<div><div class="lname">'+statusDot+escapeHtml(lg.name)+'</div><div class="lsub">'+subText+'</div></div><div class="chev">›</div>';
+    onTap(row, function(){ openLeagueDetail(lg.id); });
+
+    var delBtn = document.createElement('div');
+    delBtn.className = 'swipe-del';
+    delBtn.textContent = 'Устгах';
+    onTap(delBtn, function(e){
+      e && e.stopPropagation && e.stopPropagation();
+      deleteLeague(lg.id);
+    });
+
+    rowWrap.appendChild(row);
+    rowWrap.appendChild(delBtn);
+    wrap.appendChild(rowWrap);
+  });
+}
+function deleteLeague(leagueId){
+  var lg = DB.leagues.find(function(l){return l.id===leagueId;});
+  if(!lg) return;
+  customConfirm('"'+lg.name+'" лигийг бүрэн устгах уу? Энэ лигийн leaderboard, grid, standings, playoff, fixtures бүгд устана. Тоглогчдын хувийн статистик (Kill/Ace/Dig гэх мэт) болон тоглолтын түүх Saved Matches-д хэвээр хадгалагдана. Энэ үйлдлийг буцаах боломжгүй.', function(){
+    DB.leagues = DB.leagues.filter(function(l){return l.id!==leagueId;});
+    saveDB();
+    renderLeaguesList();
+    toast('Лиг устгагдсан');
+  });
+}
+onTap(document.getElementById('btn-menu-leagues'), openSidebar);
+onTap(document.getElementById('nav-leagues'), function(){ closeSidebar(); renderLeaguesList(); showScreen('screen-leagues'); });
+onTap(document.getElementById('nav-h2h'), function(){ closeSidebar(); openH2hPicker(); });
+onTap(document.getElementById('nav-records'), function(){ closeSidebar(); openRecords(); });
+onTap(document.getElementById('nav-search'), function(){ closeSidebar(); openSearch(); });
+onTap(document.getElementById('btn-add-league'), function(){ openCreateLeague(); });
+
+function openCreateLeague(){
+  leagueCreateSelectedIds = [];
+  leagueCreateSourceId = null;
+  leagueCreateCarryScore = 'yes';
+  leagueCreateFormat = 'roundrobin';
+  document.getElementById('inp-league-name').value = '';
+  document.getElementById('val-league-source').textContent = 'Сонгоогүй ›';
+  document.getElementById('row-league-carryscore').style.display = 'none';
+  setSegCarryScore('yes');
+  setSegLeagueFormat('roundrobin');
+  renderLeagueCreateTeamList();
+  showScreen('screen-league-create');
+}
+var leagueCreateSourceId = null;
+var leagueCreateCarryScore = 'yes';
+var leagueCreateFormat = 'roundrobin'; // 'roundrobin' | 'pvp'
+function setSegLeagueFormat(v){
+  leagueCreateFormat = v;
+  document.querySelectorAll('#seg-league-format div').forEach(function(d){
+    d.classList.toggle('on', d.getAttribute('data-v')===v);
+  });
+}
+document.querySelectorAll('#seg-league-format div').forEach(function(d){
+  onTap(d, function(){ setSegLeagueFormat(d.getAttribute('data-v')); });
+});
+onTap(document.getElementById('row-league-source'), function(){
+  if(DB.leagues.length===0){ toast('Өмнөх лиг алга байна'); return; }
+  var items = [{label:'— Сонгохгүй —', league:null}].concat(
+    DB.leagues.map(function(lg){ return {label:lg.name+' ('+lg.activeTeamIds.length+' баг үлдсэн)', league:lg}; })
+  );
+  openSheet('Эх лиг сонгох', items, function(it){
+    leagueCreateSourceId = it.league ? it.league.id : null;
+    if(it.league){
+      document.getElementById('val-league-source').textContent = it.league.name+' ›';
+      document.getElementById('row-league-carryscore').style.display = 'flex';
+      // auto-select the active (still-in) teams from the source league
+      leagueCreateSelectedIds = it.league.activeTeamIds.slice();
+    } else {
+      document.getElementById('val-league-source').textContent = 'Сонгоогүй ›';
+      document.getElementById('row-league-carryscore').style.display = 'none';
+      leagueCreateSelectedIds = [];
+    }
+    renderLeagueCreateTeamList();
+  });
+});
+function setSegCarryScore(v){
+  leagueCreateCarryScore = v;
+  document.querySelectorAll('#seg-carryscore div').forEach(function(d){
+    d.classList.toggle('on', d.getAttribute('data-v')===v);
+  });
+}
+document.querySelectorAll('#seg-carryscore div').forEach(function(d){
+  onTap(d, function(){ setSegCarryScore(d.getAttribute('data-v')); });
+});
+function renderLeagueCreateTeamList(){
+  var wrap = document.getElementById('league-create-teamlist');
+  wrap.innerHTML = '';
+  DB.teams.forEach(function(team){
+    var row = document.createElement('div');
+    var sel = leagueCreateSelectedIds.indexOf(team.id)>=0;
+    row.className = 'checkrow'+(sel?' sel':'');
+    row.innerHTML = '<div class="lname" style="font-weight:400;font-size:17px;">'+escapeHtml(team.name)+'</div><div class="ck">'+(sel?'✓':'')+'</div>';
+    onTap(row, function(){
+      var idx = leagueCreateSelectedIds.indexOf(team.id);
+      if(idx>=0) leagueCreateSelectedIds.splice(idx,1); else leagueCreateSelectedIds.push(team.id);
+      renderLeagueCreateTeamList();
+    });
+    wrap.appendChild(row);
+  });
+}
+onTap(document.getElementById('btn-back-league-create'), function(){ renderLeaguesList(); showScreen('screen-leagues'); });
+onTap(document.getElementById('btn-league-create-confirm'), function(){
+  var name = document.getElementById('inp-league-name').value.trim();
+  if(!name){ toast('Лигийн нэрээ оруулна уу'); return; }
+  if(leagueCreateSelectedIds.length<2){ toast('Дор хаяж 2 баг сонгоно уу'); return; }
+  var league = {
+    id: uid(), name: name,
+    format: leagueCreateFormat,
+    teamIds: leagueCreateSelectedIds.slice(),
+    activeTeamIds: leagueCreateSelectedIds.slice(),
+    eliminatedTeamIds: [],
+    week: 1,
+    pointsTable: {},
+    fixtures: [],
+    sourceLeagueId: leagueCreateSourceId || null
+  };
+  league.teamIds.forEach(function(tid){ ensureLeagueStat(league, tid); });
+  // carry over accumulated points from source league if requested
+  if(leagueCreateSourceId && leagueCreateCarryScore==='yes'){
+    var srcLeague = DB.leagues.find(function(l){return l.id===leagueCreateSourceId;});
+    if(srcLeague){
+      league.teamIds.forEach(function(tid){
+        var srcStat = srcLeague.pointsTable[tid];
+        if(srcStat){
+          league.pointsTable[tid] = {played:0, won:0, points: srcStat.points};
+        }
+      });
+    }
+  }
+  if(leagueCreateFormat==='pvp'){
+    league.pvpBracket = generatePvpBracket(league.teamIds);
+  } else {
+    league.fixtures = generateRoundRobinFixtures(league.teamIds);
+  }
+  DB.leagues.push(league);
+  saveDB();
+  openLeagueDetail(league.id);
+});
+
+/* ---------- ROUND-ROBIN FIXTURES (circle method) ---------- */
+function generateRoundRobinFixtures(teamIds){
+  var ids = teamIds.slice();
+  var hasBye = false;
+  if(ids.length % 2 !== 0){ ids.push(null); hasBye = true; } // bye round if odd team count
+  var n = ids.length;
+  var rounds = n - 1;
+  var half = n / 2;
+  var schedule = [];
+  var arr = ids.slice();
+  for(var r=0; r<rounds; r++){
+    var roundPairs = [];
+    for(var i=0; i<half; i++){
+      var a = arr[i], b = arr[n-1-i];
+      if(a!==null && b!==null){
+        // alternate home/away across rounds for fairness
+        if(r % 2 === 0) roundPairs.push({homeTeamId:a, awayTeamId:b});
+        else roundPairs.push({homeTeamId:b, awayTeamId:a});
+      }
+    }
+    schedule.push({round:r+1, pairs:roundPairs});
+    // rotate: keep arr[0] fixed, rotate the rest
+    var last = arr.pop();
+    arr.splice(1,0,last);
+  }
+  var fixtures = [];
+  schedule.forEach(function(rd){
+    rd.pairs.forEach(function(pr){
+      fixtures.push({id:uid(), round:rd.round, homeTeamId:pr.homeTeamId, awayTeamId:pr.awayTeamId, matchId:null});
+    });
+  });
+  return fixtures;
+}
+function findFixtureMatch(fixture, league){
+  if(fixture.matchId){
+    var m = DB.matches.find(function(x){return x.id===fixture.matchId;});
+    if(m) return m;
+  }
+  return DB.matches.find(function(m){
+    return m.leagueId===league.id &&
+      ((m.homeTeamId===fixture.homeTeamId && m.awayTeamId===fixture.awayTeamId) ||
+       (m.homeTeamId===fixture.awayTeamId && m.awayTeamId===fixture.homeTeamId));
+  });
+}
+
+/* ---------- PVP SINGLE-ELIMINATION BRACKET (knockout, best of 3 sets) ---------- */
+function generatePvpBracket(teamIds){
+  var ids = teamIds.slice();
+  // shuffle for random seeding
+  for(var i=ids.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=ids[i]; ids[i]=ids[j]; ids[j]=t; }
+  var bracketSize = 1;
+  while(bracketSize < ids.length) bracketSize *= 2;
+  var byeCount = bracketSize - ids.length;
+  // pad with nulls (byes) spread at the end of the seed list
+  var seeded = ids.concat(new Array(byeCount).fill(null));
+  var totalRounds = Math.log2(bracketSize);
+  var rounds = [];
+  // round 1 matches from seeded list
+  var round1 = [];
+  for(var m=0; m<bracketSize/2; m++){
+    round1.push({id:uid(), round:1, slot:m, homeTeamId:seeded[m*2], awayTeamId:seeded[m*2+1], matchId:null, winnerId:null});
+  }
+  // auto-resolve byes immediately (team plays no one -> advances)
+  round1.forEach(function(fx){
+    if(fx.homeTeamId && !fx.awayTeamId) fx.winnerId = fx.homeTeamId;
+    else if(!fx.homeTeamId && fx.awayTeamId) fx.winnerId = fx.awayTeamId;
+  });
+  rounds.push(round1);
+  var prevCount = round1.length;
+  for(var r=2; r<=totalRounds; r++){
+    var roundMatches = [];
+    for(var s=0; s<prevCount/2; s++){
+      roundMatches.push({id:uid(), round:r, slot:s, homeTeamId:null, awayTeamId:null, matchId:null, winnerId:null});
+    }
+    rounds.push(roundMatches);
+    prevCount = roundMatches.length;
+  }
+  var bracket = {rounds: rounds, champion: null, bestOf: 3};
+  propagatePvpByes(bracket);
+  return bracket;
+}
+function propagatePvpByes(bracket){
+  for(var r=0; r<bracket.rounds.length-1; r++){
+    var thisRound = bracket.rounds[r];
+    var nextRound = bracket.rounds[r+1];
+    thisRound.forEach(function(fx){
+      if(!fx.winnerId) return;
+      var nextSlot = nextRound[Math.floor(fx.slot/2)];
+      if(!nextSlot) return;
+      if(fx.slot % 2 === 0) nextSlot.homeTeamId = fx.winnerId;
+      else nextSlot.awayTeamId = fx.winnerId;
+    });
+  }
+  var finalRound = bracket.rounds[bracket.rounds.length-1];
+  if(finalRound.length===1 && finalRound[0].winnerId){
+    bracket.champion = finalRound[0].winnerId;
+  }
+}
+function pvpFixtureResult(fx){
+  if(!fx.matchId) return null;
+  return DB.matches.find(function(m){return m.id===fx.matchId;});
+}
+function recordPvpResult(bracket, roundIdx, slotIdx, matchId, winnerId){
+  var fx = bracket.rounds[roundIdx][slotIdx];
+  fx.matchId = matchId;
+  fx.winnerId = winnerId;
+  propagatePvpByes(bracket);
+}
+function pvpRoundLabel(roundIdx, totalRounds){
+  var fromEnd = totalRounds - roundIdx;
+  if(fromEnd===1) return 'Финал';
+  if(fromEnd===2) return 'Семифинал';
+  if(fromEnd===3) return 'Дөрөвний финал';
+  return 'Раунд '+(roundIdx+1);
+}
+
+function openLeagueDetail(leagueId){
+  currentLeagueId = leagueId;
+  leagueDetailTab = 'grid';
+  leagueStandingsWeekFilter = 'all';
+  leagueGridWeekFilter = 'current';
+  leaguePlayersMode = 'this';
+  renderLeagueDetail();
+  showScreen('screen-league-detail');
+}
+function renderLeagueDetail(){
+  var league = DB.leagues.find(function(l){return l.id===currentLeagueId;});
+  if(!league) return;
+  if(!league.fixtures) league.fixtures = [];
+  if(!league.format) league.format = 'roundrobin';
+  document.getElementById('league-detail-title').textContent = league.name;
+  var isPvp = league.format==='pvp';
+  if(isPvp){
+    document.getElementById('league-week-label').textContent =
+      league.pvpBracket && league.pvpBracket.champion ? '🥊 PvP Knockout — дууссан' : '🥊 PvP Knockout явагдаж байна';
+    if(leagueDetailTab==='grid' || leagueDetailTab==='standings' || leagueDetailTab==='players'){
+      leagueDetailTab = 'fixtures';
+    }
+  } else if(league.playoff){
+    document.getElementById('league-week-label').textContent =
+      league.playoff.champion ? '🏆 Плэйофф дууссан' : '🏆 Плэйофф — 4 баг';
+  } else {
+    document.getElementById('league-week-label').textContent =
+      '7 хоног '+league.week+' · '+league.activeTeamIds.length+' баг үлдсэн'+
+      (league.eliminatedTeamIds.length ? (' · '+league.eliminatedTeamIds.length+' хасагдсан') : '');
+  }
+  document.getElementById('btn-league-startmatch').style.display = (isPvp || league.playoff) ? 'none' : 'block';
+  document.getElementById('btn-league-advanceweek').style.display = (isPvp || league.playoff) ? 'none' : 'block';
+  document.getElementById('btn-league-nextleague').style.display = (isPvp ? (league.pvpBracket && league.pvpBracket.champion ? 'block' : 'none') : ((league.playoff && !league.playoff.champion) ? 'none' : 'block'));
+  document.getElementById('tab-league-grid').style.display = isPvp ? 'none' : 'block';
+  document.getElementById('tab-league-standings').style.display = isPvp ? 'none' : 'block';
+  document.getElementById('tab-league-players').style.display = isPvp ? 'none' : 'block';
+  document.getElementById('tab-league-fixtures').textContent = isPvp ? 'Bracket' : 'Fixtures';
+  document.getElementById('tab-league-grid').classList.toggle('active', leagueDetailTab==='grid');
+  document.getElementById('tab-league-standings').classList.toggle('active', leagueDetailTab==='standings');
+  document.getElementById('tab-league-fixtures').classList.toggle('active', leagueDetailTab==='fixtures');
+  document.getElementById('tab-league-players').classList.toggle('active', leagueDetailTab==='players');
+  document.getElementById('tab-league-bestxi').classList.toggle('active', leagueDetailTab==='bestxi');
+  if(leagueDetailTab==='bestxi'){ renderLeagueBestXi(league); return; }
+  if(isPvp){ renderPvpBracketTab(league); return; }
+  if(leagueDetailTab==='grid') renderLeagueGrid(league);
+  else if(leagueDetailTab==='standings') renderLeagueStandings(league);
+  else if(leagueDetailTab==='fixtures') renderLeagueFixtures(league);
+  else renderLeaguePlayers(league);
+}
+onTap(document.getElementById('tab-league-grid'), function(){ leagueDetailTab='grid'; renderLeagueDetail(); });
+onTap(document.getElementById('tab-league-standings'), function(){ leagueDetailTab='standings'; renderLeagueDetail(); });
+onTap(document.getElementById('tab-league-fixtures'), function(){ leagueDetailTab='fixtures'; renderLeagueDetail(); });
+onTap(document.getElementById('tab-league-players'), function(){ leagueDetailTab='players'; renderLeagueDetail(); });
+onTap(document.getElementById('tab-league-bestxi'), function(){ leagueDetailTab='bestxi'; renderLeagueDetail(); });
+onTap(document.getElementById('btn-back-league-detail'), function(){ renderLeaguesList(); showScreen('screen-leagues'); });
+onTap(document.getElementById('btn-league-delete'), function(){
+  if(!currentLeagueId) return;
+  deleteLeagueAndGoBack(currentLeagueId);
+});
+function deleteLeagueAndGoBack(leagueId){
+  var lg = DB.leagues.find(function(l){return l.id===leagueId;});
+  if(!lg) return;
+  customConfirm('"'+lg.name+'" лигийг бүрэн устгах уу? Энэ лигийн leaderboard, grid, standings, playoff, fixtures бүгд устана. Тоглогчдын хувийн статистик болон тоглолтын түүх Saved Matches-д хэвээр хадгалагдана. Энэ үйлдлийг буцаах боломжгүй.', function(){
+    DB.leagues = DB.leagues.filter(function(l){return l.id!==leagueId;});
+    saveDB();
+    renderLeaguesList();
+    showScreen('screen-leagues');
+    toast('Лиг устгагдсан');
+  });
+}
+
+/* ---------- PVP BRACKET TAB ---------- */
+function renderPvpBracketTab(league){
+  var wrap = document.getElementById('league-grid-wrap');
+  var bracket = league.pvpBracket;
+  if(!bracket || !bracket.rounds || bracket.rounds.length===0){
+    wrap.innerHTML = '<div class="emptystate">Bracket алга байна.</div>';
+    return;
+  }
+  var totalRounds = bracket.rounds.length;
+  var html = '';
+  bracket.rounds.forEach(function(round, rIdx){
+    html += '<div class="menu-row" style="background:#3a3a3c;color:#fff;font-weight:700;">'+pvpRoundLabel(rIdx, totalRounds)+'</div>';
+    round.forEach(function(fx, sIdx){
+      var home = fx.homeTeamId ? DB.teams.find(function(t){return t.id===fx.homeTeamId;}) : null;
+      var away = fx.awayTeamId ? DB.teams.find(function(t){return t.id===fx.awayTeamId;}) : null;
+      if(!home && !away){
+        html += '<div class="list-row"><div class="lsub">Хүлээгдэж байна</div></div>';
+        return;
+      }
+      if(home && !away){
+        html += '<div class="list-row"><div style="display:flex;align-items:center;gap:10px;">'+teamAvatarHtml(home,'small')+
+          '<span class="lname" style="font-size:15px;">'+escapeHtml(home.name)+'</span></div>'+
+          '<span style="color:var(--green);font-size:13px;font-weight:700;">BYE — шууд шагшина</span></div>';
+        return;
+      }
+      if(!home && away){
+        html += '<div class="list-row"><div style="display:flex;align-items:center;gap:10px;">'+teamAvatarHtml(away,'small')+
+          '<span class="lname" style="font-size:15px;">'+escapeHtml(away.name)+'</span></div>'+
+          '<span style="color:var(--green);font-size:13px;font-weight:700;">BYE — шууд шагшина</span></div>';
+        return;
+      }
+      var played = pvpFixtureResult(fx);
+      var resultHtml = played ?
+        '<span style="font-weight:800;color:var(--blue);">'+played.homeSets+' — '+played.awaySets+'</span>' :
+        '<span style="color:var(--green);font-size:13px;font-weight:700;">▶ Тоглолт эхлүүлэх</span>';
+      html += '<div class="list-row" data-pvp-round="'+rIdx+'" data-pvp-slot="'+sIdx+'">'+
+        '<div style="display:flex;align-items:center;gap:10px;flex:1;">'+teamAvatarHtml(home,'small')+
+        '<span class="lname" style="font-size:15px;'+(fx.winnerId===away.id?'opacity:.5;':'')+'">'+escapeHtml(home.name)+'</span>'+
+        '<span style="color:#8A8A8E;">vs</span>'+
+        teamAvatarHtml(away,'small')+
+        '<span class="lname" style="font-size:15px;'+(fx.winnerId===home.id?'opacity:.5;':'')+'">'+escapeHtml(away.name)+'</span></div>'+
+        '<div>'+resultHtml+'</div></div>';
+    });
+  });
+  if(bracket.champion){
+    var champ = DB.teams.find(function(t){return t.id===bracket.champion;});
+    if(champ){
+      html += '<div class="list-row" style="background:#FFF7E0;justify-content:center;gap:10px;">'+teamAvatarHtml(champ,'small')+
+        '<span class="lname" style="font-size:18px;color:var(--orange);">🥇 PvP Аварга: '+escapeHtml(champ.name)+'</span></div>';
+    }
+  }
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-pvp-round]').forEach(function(row){
+    var rIdx = parseInt(row.getAttribute('data-pvp-round'),10);
+    var sIdx = parseInt(row.getAttribute('data-pvp-slot'),10);
+    var fx = bracket.rounds[rIdx][sIdx];
+    if(pvpFixtureResult(fx)) return; // already played
+    onTap(row, function(){ startPvpMatch(league, rIdx, sIdx); });
+  });
+}
+function startPvpMatch(league, roundIdx, slotIdx){
+  var fx = league.pvpBracket.rounds[roundIdx][slotIdx];
+  startMatch(fx.homeTeamId, fx.awayTeamId, league.id);
+  pendingPvpStage = {leagueId: league.id, roundIdx: roundIdx, slotIdx: slotIdx};
+}
+var pendingPvpStage = null;
+
+/* ---------- FIXTURES TAB: show round-robin schedule with result/status ---------- */
+function renderLeagueFixtures(league){
+  var wrap = document.getElementById('league-grid-wrap');
+  var html = '';
+
+  if(league.playoff){
+    advancePlayoffIfReady(league);
+    html += renderPlayoffBracketHtml(league);
+  }
+
+  if(!league.fixtures || league.fixtures.length===0){
+    if(!html) wrap.innerHTML = '<div class="emptystate">Хуваарь алга байна.</div>';
+    else wrap.innerHTML = html;
+    bindPlayoffRowTaps(league);
+    return;
+  }
+  var byRound = {};
+  league.fixtures.forEach(function(f){
+    if(!byRound[f.round]) byRound[f.round] = [];
+    byRound[f.round].push(f);
+  });
+  Object.keys(byRound).sort(function(a,b){return a-b;}).forEach(function(rk){
+    html += '<div class="menu-row" style="background:#3a3a3c;color:#fff;font-weight:700;">Раунд '+rk+'</div>';
+    byRound[rk].forEach(function(f){
+      var home = DB.teams.find(function(t){return t.id===f.homeTeamId;});
+      var away = DB.teams.find(function(t){return t.id===f.awayTeamId;});
+      if(!home || !away) return;
+      var played = findFixtureMatch(f, league);
+      var resultHtml;
+      if(played){
+        resultHtml = '<span style="font-weight:800;color:var(--blue);">'+played.homeSets+' — '+played.awaySets+'</span>';
+      } else {
+        resultHtml = '<span style="color:#8A8A8E;font-size:13px;">Тоглоогүй</span>';
+      }
+      html += '<div class="list-row" data-fixture-id="'+f.id+'">'+
+        '<div style="display:flex;align-items:center;gap:10px;flex:1;">'+teamAvatarHtml(home,'small')+
+        '<span class="lname" style="font-size:15px;">'+escapeHtml(home.name)+'</span>'+
+        '<span style="color:#8A8A8E;">vs</span>'+
+        teamAvatarHtml(away,'small')+
+        '<span class="lname" style="font-size:15px;">'+escapeHtml(away.name)+'</span></div>'+
+        '<div>'+resultHtml+'</div></div>';
+    });
+  });
+  wrap.innerHTML = html;
+  bindPlayoffRowTaps(league);
+}
+function playoffStageLabel(key){
+  return {sf1:'Семифинал 1', sf2:'Семифинал 2', final:'Финал (Алт/Мөнгө)', thirdPlace:'Хүрэл медалийн тоглолт'}[key] || key;
+}
+function renderPlayoffBracketHtml(league){
+  var po = league.playoff;
+  var html = '<div class="menu-row" style="background:#3a3a3c;color:#fff;font-weight:700;">🏆 ПЛЭЙОФФ</div>';
+  ['sf1','sf2','final','thirdPlace'].forEach(function(key){
+    var fx = po[key];
+    if(!fx.homeTeamId || !fx.awayTeamId){
+      html += '<div class="list-row"><div class="lsub">'+playoffStageLabel(key)+': хүлээгдэж байна</div></div>';
+      return;
+    }
+    var home = DB.teams.find(function(t){return t.id===fx.homeTeamId;});
+    var away = DB.teams.find(function(t){return t.id===fx.awayTeamId;});
+    if(!home || !away) return;
+    var played = playoffMatchResult(fx);
+    var resultHtml = played ?
+      '<span style="font-weight:800;color:var(--blue);">'+played.homeSets+' — '+played.awaySets+'</span>' :
+      '<span style="color:var(--green);font-size:13px;font-weight:700;">▶ Тоглолт эхлүүлэх</span>';
+    html += '<div class="list-row" data-playoff-key="'+key+'">'+
+      '<div style="display:flex;flex-direction:column;gap:4px;flex:1;">'+
+      '<div class="lsub" style="font-size:12px;font-weight:700;color:#8A8A8E;">'+playoffStageLabel(key)+'</div>'+
+      '<div style="display:flex;align-items:center;gap:10px;">'+teamAvatarHtml(home,'small')+
+      '<span class="lname" style="font-size:15px;">'+escapeHtml(home.name)+'</span>'+
+      '<span style="color:#8A8A8E;">vs</span>'+
+      teamAvatarHtml(away,'small')+
+      '<span class="lname" style="font-size:15px;">'+escapeHtml(away.name)+'</span></div></div>'+
+      '<div>'+resultHtml+'</div></div>';
+  });
+  if(po.champion){
+    var champ = DB.teams.find(function(t){return t.id===po.champion;});
+    if(champ){
+      html += '<div class="list-row" style="background:#FFF7E0;justify-content:center;gap:10px;">'+teamAvatarHtml(champ,'small')+
+        '<span class="lname" style="font-size:18px;color:var(--orange);">🥇 Аваргa: '+escapeHtml(champ.name)+'</span></div>';
+    }
+  }
+  return html;
+}
+function bindPlayoffRowTaps(league){
+  if(!league.playoff) return;
+  var wrap = document.getElementById('league-grid-wrap');
+  wrap.querySelectorAll('[data-playoff-key]').forEach(function(row){
+    var key = row.getAttribute('data-playoff-key');
+    var fx = league.playoff[key];
+    if(!fx || !fx.homeTeamId || !fx.awayTeamId) return;
+    var alreadyPlayed = playoffMatchResult(fx);
+    if(alreadyPlayed) return;
+    onTap(row, function(){
+      startPlayoffMatch(league, key);
+    });
+  });
+}
+function startPlayoffMatch(league, stageKey){
+  var fx = league.playoff[stageKey];
+  startMatch(fx.homeTeamId, fx.awayTeamId, league.id);
+  pendingPlayoffStage = {leagueId: league.id, stageKey: stageKey};
+}
+var pendingPlayoffStage = null;
+
+function teamAbbrev(team){ return (team.name||'').slice(0,3).toUpperCase(); }
+
+/* ---------- LEAGUE GRID: filter by week so old weeks don't keep showing on top of new ones ---------- */
+var leagueGridWeekFilter = 'current'; // 'current' | 'all' | number
+function renderLeagueGrid(league){
+  var wrap = document.getElementById('league-grid-wrap');
+  var teams = league.teamIds.map(function(tid){ return DB.teams.find(function(t){return t.id===tid;}); }).filter(Boolean);
+
+  var chipsHtml = '<div style="padding:10px 10px 2px;overflow-x:auto;white-space:nowrap;">';
+  chipsHtml += '<span class="leaguechip'+(leagueGridWeekFilter==='current'?' active':'')+'" data-val="current">Энэ 7 хоног ('+league.week+')</span>';
+  chipsHtml += '<span class="leaguechip'+(leagueGridWeekFilter==='all'?' active':'')+'" data-val="all">Бүгд</span>';
+  for(var w=1; w<league.week; w++){
+    chipsHtml += '<span class="leaguechip'+(leagueGridWeekFilter===w?' active':'')+'" data-val="'+w+'">7 хоног '+w+'</span>';
+  }
+  chipsHtml += '</div>';
+
+  var leagueMatches = DB.matches.filter(function(m){
+    if(m.leagueId !== league.id) return false;
+    if(leagueGridWeekFilter==='all') return true;
+    if(leagueGridWeekFilter==='current') return m.leagueWeek===league.week;
+    return m.leagueWeek===leagueGridWeekFilter;
+  });
+  function findResult(aId, bId){
+    var m = leagueMatches.find(function(mm){
+      return (mm.homeTeamId===aId && mm.awayTeamId===bId) || (mm.homeTeamId===bId && mm.awayTeamId===aId);
+    });
+    if(!m) return null;
+    var aSets, bSets;
+    if(m.homeTeamId===aId){ aSets=m.homeSets; bSets=m.awaySets; } else { aSets=m.awaySets; bSets=m.homeSets; }
+    return aSets+'-'+bSets;
+  }
+  // only show teams still relevant: for "current"/specific week, still show all league teams (some may be eliminated already, shown faded)
+  var html = '<table class="gridtable"><tr><th></th>';
+  teams.forEach(function(t,i){ html += '<th>'+(i+1)+'</th>'; });
+  html += '</tr>';
+  teams.forEach(function(rowTeam, ri){
+    var eliminated = league.eliminatedTeamIds.indexOf(rowTeam.id)>=0;
+    html += '<tr><td class="teamcol"'+(eliminated?' style="opacity:.5;"':'')+'>'+(ri+1)+'. '+escapeHtml(teamAbbrev(rowTeam))+'</td>';
+    teams.forEach(function(colTeam, ci){
+      if(ri===ci){
+        if(leagueGridWeekFilter==='all'){
+          var st = league.pointsTable[rowTeam.id] || {played:0,won:0,points:0};
+          html += '<td class="diag">'+st.won+'-'+(st.played-st.won)+'<br>'+st.points+'</td>';
+        } else {
+          var wk = (leagueGridWeekFilter==='current') ? league.week : leagueGridWeekFilter;
+          var wkStats = computeLeagueStats(league, wk);
+          var wst = wkStats[rowTeam.id] || {played:0,won:0,points:0};
+          html += '<td class="diag">'+wst.won+'-'+(wst.played-wst.won)+'<br>'+wst.points+'</td>';
+        }
+      } else {
+        var res = findResult(rowTeam.id, colTeam.id);
+        html += '<td>'+(res || '•')+'</td>';
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</table>';
+  wrap.innerHTML = chipsHtml + html;
+  wrap.querySelectorAll('.leaguechip').forEach(function(chip){
+    onTap(chip, function(){
+      var v = chip.getAttribute('data-val');
+      leagueGridWeekFilter = (v==='current'||v==='all') ? v : parseInt(v,10);
+      renderLeagueGrid(league);
+    });
+  });
+}
+
+var leagueStandingsWeekFilter = 'all';
+function computeLeagueStats(league, weekFilter){
+  var matches = DB.matches.filter(function(m){
+    return m.leagueId===league.id && (weekFilter==='all' || m.leagueWeek===weekFilter);
+  });
+  var table = {};
+  league.teamIds.forEach(function(tid){ table[tid] = {played:0,won:0,points:0}; });
+  matches.forEach(function(m){
+    var homeWon = m.sets.filter(function(s){return s.home>s.away;}).length;
+    var awayWon = m.sets.filter(function(s){return s.away>s.home;}).length;
+    if(!table[m.homeTeamId]) table[m.homeTeamId] = {played:0,won:0,points:0};
+    if(!table[m.awayTeamId]) table[m.awayTeamId] = {played:0,won:0,points:0};
+    table[m.homeTeamId].played++; table[m.awayTeamId].played++;
+    var pts;
+    if(homeWon>awayWon){ pts=vnlPoints(homeWon,awayWon); table[m.homeTeamId].won++; table[m.homeTeamId].points+=pts.win; table[m.awayTeamId].points+=pts.lose; }
+    else { pts=vnlPoints(awayWon,homeWon); table[m.awayTeamId].won++; table[m.awayTeamId].points+=pts.win; table[m.homeTeamId].points+=pts.lose; }
+  });
+  return table;
+}
+
+function renderLeagueStandings(league){
+  var wrap = document.getElementById('league-grid-wrap');
+  if(!league.prevRanks) league.prevRanks = {};
+  var chipsHtml = '<div style="padding:10px 10px 2px;overflow-x:auto;white-space:nowrap;">';
+  chipsHtml += '<span class="leaguechip'+(leagueStandingsWeekFilter==='all'?' active':'')+'" data-val="all">Бүгд</span>';
+  for(var w=1; w<=league.week; w++){
+    chipsHtml += '<span class="leaguechip'+(leagueStandingsWeekFilter===w?' active':'')+'" data-val="'+w+'">7 хоног '+w+'</span>';
+  }
+  chipsHtml += '</div>';
+
+  var table = computeLeagueStats(league, leagueStandingsWeekFilter);
+  var allTeamObjs = league.teamIds.map(function(tid){ return DB.teams.find(function(t){return t.id===tid;}); }).filter(Boolean);
+  var newRanks = {};
+
+  var html = chipsHtml;
+  if(leagueStandingsWeekFilter==='all'){
+    var activeTeams = league.activeTeamIds.map(function(tid){ return DB.teams.find(function(t){return t.id===tid;}); }).filter(Boolean);
+    var eliminatedTeams = league.eliminatedTeamIds.map(function(tid){ return DB.teams.find(function(t){return t.id===tid;}); }).filter(Boolean);
+    activeTeams.sort(function(a,b){ return (table[b.id]||{points:0}).points - (table[a.id]||{points:0}).points; });
+    eliminatedTeams.sort(function(a,b){ return (table[b.id]||{points:0}).points - (table[a.id]||{points:0}).points; });
+    html += '<table class="gridtable" style="font-size:14px;"><tr><th></th><th>Rank</th><th style="text-align:left;">Team</th><th>P</th><th>W</th><th>Pts</th></tr>';
+    activeTeams.forEach(function(t, idx){
+      var st = table[t.id]||{played:0,won:0,points:0};
+      newRanks[t.id] = idx;
+      html += '<tr><td>'+rankArrowHtml(league.prevRanks[t.id], idx)+'</td><td>'+(idx+1)+'</td><td class="teamcol" style="position:static;">'+escapeHtml(t.name)+'</td><td>'+st.played+'</td><td>'+st.won+'</td><td><b>'+st.points+'</b></td></tr>';
+    });
+    if(eliminatedTeams.length){
+      html += '<tr><td colspan="6" style="background:#F2F1F6;color:#8A8A8E;font-weight:700;">— ХАСАГДСАН —</td></tr>';
+      eliminatedTeams.forEach(function(t){
+        var st = table[t.id]||{played:0,won:0,points:0};
+        html += '<tr style="opacity:.5;"><td></td><td>—</td><td class="teamcol" style="position:static;">'+escapeHtml(t.name)+'</td><td>'+st.played+'</td><td>'+st.won+'</td><td>'+st.points+'</td></tr>';
+      });
+    }
+    html += '</table>';
+  } else {
+    var teams = allTeamObjs.slice().sort(function(a,b){ return (table[b.id]||{points:0}).points - (table[a.id]||{points:0}).points; });
+    html += '<table class="gridtable" style="font-size:14px;"><tr><th></th><th>Rank</th><th style="text-align:left;">Team</th><th>P</th><th>W</th><th>Pts</th></tr>';
+    teams.forEach(function(t, idx){
+      var st = table[t.id]||{played:0,won:0,points:0};
+      html += '<tr><td>'+rankArrowHtml(league.prevRanks[t.id], idx)+'</td><td>'+(idx+1)+'</td><td class="teamcol" style="position:static;">'+escapeHtml(t.name)+'</td><td>'+st.played+'</td><td>'+st.won+'</td><td><b>'+st.points+'</b></td></tr>';
+    });
+    html += '</table>';
+  }
+  wrap.innerHTML = html;
+  if(leagueStandingsWeekFilter==='all'){ league.prevRanks = newRanks; saveDB(); }
+  wrap.querySelectorAll('.leaguechip').forEach(function(chip){
+    onTap(chip, function(){
+      var v = chip.getAttribute('data-val');
+      leagueStandingsWeekFilter = (v==='all') ? 'all' : parseInt(v,10);
+      renderLeagueStandings(league);
+    });
+  });
+}
+
+/* ---------- LEAGUE PLAYERS TAB: ranked by score within position category (like Leaderboard), scoped to this league's teams ---------- */
+/* ---------- LEAGUE-SCOPED PLAYER STATS (computed only from matches tagged
+   with the given league id(s) — NOT the old global DB.playerTotals) ---------- */
+function computeLeagueMatchPlayerStats(leagueIds){
+  var totals = {};
+  DB.matches.forEach(function(m){
+    // Count any recorded stats for this league even if the match hasn't
+    // been played all the way to a final result yet (e.g. exited early) —
+    // the kills/aces/digs already logged are real and should count.
+    if(leagueIds.indexOf(m.leagueId) < 0) return;
+    [m.statsHome, m.statsAway].forEach(function(statsObj){
+      if(!statsObj) return;
+      Object.keys(statsObj).forEach(function(pid){
+        var s = statsObj[pid];
+        if(!totals[pid]) totals[pid] = {kills:0,atkE:0,totAtk:0,aces:0,srvE:0,digs:0,blk:0,asst:0,asstE:0,mvpCount:0};
+        var t = totals[pid];
+        t.kills+=(s.kills||0); t.atkE+=(s.atkE||0); t.totAtk+=(s.totAtk||0);
+        t.aces+=(s.aces||0); t.srvE+=(s.srvE||0); t.digs+=(s.digs||0);
+        t.blk+=(s.blk||0); t.asst+=(s.asst||0); t.asstE+=(s.asstE||0);
+      });
+    });
+    if(m.mvpPlayerId){
+      if(!totals[m.mvpPlayerId]) totals[m.mvpPlayerId] = {kills:0,atkE:0,totAtk:0,aces:0,srvE:0,digs:0,blk:0,asst:0,asstE:0,mvpCount:0};
+      totals[m.mvpPlayerId].mvpCount++;
+    }
+  });
+  return totals;
+}
+function getLeagueAncestorChain(league){
+  var chain = [];
+  var current = league;
+  var guard = 0;
+  while(current && current.sourceLeagueId && guard<20){
+    var parent = DB.leagues.find(function(l){return l.id===current.sourceLeagueId;});
+    if(!parent) break;
+    chain.push(parent);
+    current = parent;
+    guard++;
+  }
+  return chain;
+}
+var leaguePlayersMode = 'this'; // 'this' | 'prev' | 'combined'
+function renderLeaguePlayers(league){
+  var wrap = document.getElementById('league-grid-wrap');
+  if(!league.prevPlayerRanks) league.prevPlayerRanks = {};
+  var ancestors = getLeagueAncestorChain(league);
+  var hasPrev = ancestors.length>0;
+  if(!hasPrev) leaguePlayersMode = 'this';
+
+  var html = '';
+  if(hasPrev){
+    html += '<div style="padding:10px 16px 0;"><div class="seg" id="seg-league-players-mode">'+
+      '<div data-v="this" class="'+(leaguePlayersMode==='this'?'on':'')+'" style="flex:1;text-align:center;">Энэ шат</div>'+
+      '<div data-v="prev" class="'+(leaguePlayersMode==='prev'?'on':'')+'" style="flex:1;text-align:center;">Өмнөх шат</div>'+
+      '<div data-v="combined" class="'+(leaguePlayersMode==='combined'?'on':'')+'" style="flex:1;text-align:center;">Нийлбэр</div>'+
+      '</div></div>';
+  }
+
+  var teamIds, leagueIdsForStats, refLeague;
+  if(!hasPrev || leaguePlayersMode==='this'){
+    teamIds = league.teamIds.slice();
+    leagueIdsForStats = [league.id];
+    refLeague = league;
+  } else if(leaguePlayersMode==='prev'){
+    var immediateParent = ancestors[0];
+    teamIds = immediateParent.teamIds.slice();
+    leagueIdsForStats = [immediateParent.id];
+    refLeague = immediateParent;
+  } else {
+    var idSet = {};
+    league.teamIds.forEach(function(id){ idSet[id]=true; });
+    ancestors.forEach(function(a){ a.teamIds.forEach(function(id){ idSet[id]=true; }); });
+    teamIds = Object.keys(idSet);
+    leagueIdsForStats = [league.id].concat(ancestors.map(function(a){return a.id;}));
+    refLeague = league;
+  }
+
+  var teams = teamIds.map(function(tid){ return DB.teams.find(function(t){return t.id===tid;}); }).filter(Boolean);
+  var scopedTotals = computeLeagueMatchPlayerStats(leagueIdsForStats);
+
+  var allPlayers = [];
+  teams.forEach(function(team){
+    team.players.forEach(function(p){
+      var cat = POSITION_CATEGORY[p.position] || 'Dig';
+      var totals = scopedTotals[p.id];
+      allPlayers.push({player:p, team:team, category:cat, score: computeScore(totals)});
+    });
+  });
+
+  if(allPlayers.length===0){
+    wrap.innerHTML = html + '<div class="emptystate">Лигт тоглогч алга байна.</div>';
+    bindLeaguePlayersModeToggle(league);
+    return;
+  }
+
+  var newRanks = {};
+  CATEGORY_ORDER.forEach(function(cat){
+    var group = allPlayers.filter(function(x){return x.category===cat;}).sort(function(a,b){return b.score-a.score;});
+    if(group.length===0) return;
+    html += '<div class="menu-row" style="background:#3a3a3c;color:#fff;font-weight:700;">'+CATEGORY_LABELS[cat]+'</div>';
+    group.forEach(function(item, idx){
+      newRanks[item.player.id] = idx;
+      var eliminated = refLeague.activeTeamIds.indexOf(item.team.id) < 0;
+      var fullname = ((item.player.firstName||'')+' '+(item.player.lastName||'')).trim() || ('#'+item.player.number);
+      var inactiveTag = item.player.status==='Inactive' ? '<span class="inactivetag" style="font-size:12px;">INACTIVE'+(item.player.inactiveNote?(' · '+escapeHtml(item.player.inactiveNote)):'')+'</span>' : '';
+      var arrow = (leaguePlayersMode==='this') ? rankArrowHtml(league.prevPlayerRanks[item.player.id], idx) : rankArrowHtml(undefined, idx);
+      html += '<div class="list-row"'+(eliminated?' style="opacity:.55;"':'')+'>'+
+        '<div style="display:flex;align-items:center;gap:12px;">'+playerAvatarHtml(item.player, item.team, 'small')+
+        '<div><div class="lname" style="font-size:17px;">'+(idx+1)+'. '+escapeHtml(fullname)+' <span style="color:#8A8A8E;font-weight:400;">#'+item.player.number+'</span> '+inactiveTag+'</div>'+
+        '<div class="lsub" style="font-size:14px;">'+escapeHtml(item.team.name)+(eliminated?' · хасагдсан':'')+'</div></div></div>'+
+        '<div style="display:flex;align-items:center;gap:10px;">'+arrow+'<div class="lname" style="font-size:19px;color:var(--blue);">'+item.score+'</div></div></div>';
+    });
+  });
+  wrap.innerHTML = html;
+  if(leaguePlayersMode==='this'){ league.prevPlayerRanks = newRanks; saveDB(); }
+  bindLeaguePlayersModeToggle(league);
+}
+function bindLeaguePlayersModeToggle(league){
+  var seg = document.getElementById('seg-league-players-mode');
+  if(!seg) return;
+  seg.querySelectorAll('div').forEach(function(d){
+    onTap(d, function(){ leaguePlayersMode = d.getAttribute('data-v'); renderLeaguePlayers(league); });
+  });
+}
+
+
+onTap(document.getElementById('btn-league-startmatch'), function(){
+  var league = DB.leagues.find(function(l){return l.id===currentLeagueId;});
+  if(!league) return;
+  if(league.activeTeamIds.length<2){ toast('Тоглох баг хүрэлцэхгүй байна'); return; }
+  var items = league.activeTeamIds.map(function(tid){
+    var t = DB.teams.find(function(x){return x.id===tid;});
+    return t ? {label:t.name, team:t} : null;
+  }).filter(Boolean);
+  openSheet('Гэрийн баг сонгох', items, function(it){
+    var homeTeam = it.team;
+    var items2 = items.filter(function(x){return x.team.id!==homeTeam.id;});
+    openSheet('Зочин баг сонгох', items2, function(it2){
+      openMatchPreview(homeTeam.id, it2.team.id, league.id);
+    });
+  });
+});
+
+onTap(document.getElementById('btn-league-advanceweek'), function(){
+  var league = DB.leagues.find(function(l){return l.id===currentLeagueId;});
+  if(!league) return;
+  if(league.playoff){ toast('Плэйофф эхэлсэн — энэ товч цаашид хэрэггүй'); return; }
+  var cutoff = WEEK_CUTOFFS[league.week] || 0;
+  if(cutoff===0 || league.activeTeamIds.length<=cutoff){
+    league.week++;
+    saveDB();
+    leagueGridWeekFilter = 'current';
+    renderLeagueDetail();
+    toast('7 хоног '+league.week+' эхэллээ');
+    return;
+  }
+  var sorted = league.activeTeamIds.slice().sort(function(a,b){
+    var pa = (league.pointsTable[a]||{points:0}).points;
+    var pb = (league.pointsTable[b]||{points:0}).points;
+    return pa-pb;
+  });
+  var toCut = sorted.slice(0, cutoff);
+  var names = toCut.map(function(tid){ var t=DB.teams.find(function(x){return x.id===tid;}); return t?t.name:'?'; }).join(', ');
+  var remainingAfterCut = league.activeTeamIds.length - toCut.length;
+  customConfirm('7 хоног '+league.week+' дууслаа. Хасагдах баг: '+names+'. Үргэлжлүүлэх үү?', function(){
+    toCut.forEach(function(tid){
+      league.activeTeamIds = league.activeTeamIds.filter(function(x){return x!==tid;});
+      league.eliminatedTeamIds.push(tid);
+    });
+    league.week++;
+    saveDB();
+    leagueGridWeekFilter = 'current';
+    renderLeagueDetail();
+    toast('Багууд хасагдлаа: '+names);
+    if(remainingAfterCut===4 && !league.playoff){
+      setTimeout(function(){
+        customConfirm('4 баг үлдлээ! Плэйофф (Семифинал → Финал + 3-р байрын тоглолт) эхлүүлэх үү?', function(){
+          startLeaguePlayoff(league);
+        });
+      }, 350);
+    }
+  });
+});
+
+/* ---------- PLAYOFF BRACKET: 4 teams -> 2 semifinals -> final + 3rd place match ---------- */
+function startLeaguePlayoff(league){
+  var ranked = league.activeTeamIds.slice().sort(function(a,b){
+    var pa = (league.pointsTable[a]||{points:0}).points;
     var pb = (league.pointsTable[b]||{points:0}).points;
     return pb-pa;
   });
@@ -1884,7 +4037,7 @@ var SUBACTIONS = {
   serve: [["Ace","ace"],["Error","srvE"],["Serve Zero","zero"]],
   attack: [["Kill","kill"],["Error","atkE"],["Attack Zero","zero"]],
   block: [["Block-Solo","blk"],["Block-Error","blkE"],["Block Zero","zero"]],
-  dig: [["Dig","dig"],["Dig Error","digE"],["Dig Zero","zero"]],
+  dig: [["Dig","dig"],["Dig Point","digPt"],["Dig Error","digE"],["Dig Zero","zero"]],
   error: [["Error","genE"]],
   assist: [["Assist","asst"],["Assist Error","asstE"],["Assist Zero","zero"]]
 };
@@ -1935,7 +4088,17 @@ function openSubActionSheet(side, action, player){
   });
 }
 
-function buildStatEntryData(side, action, player, key, label){
+function ordinalSuffix(n){
+  var s = ["th","st","nd","rd"], v = n%100;
+  return n + (s[(v-20)%10] || s[v] || s[0]);
+}
+function countPriorOccurrences(side, action, key, playerId, excludeEntryId){
+  return match.log.filter(function(e){
+    return e.kind==='stat' && e.setIndex===match.setIndex && e.side===side &&
+      e.action===action && e.key===key && e.playerId===playerId && e.id!==excludeEntryId;
+  }).length;
+}
+function buildStatEntryData(side, action, player, key, label, excludeEntryId){
   var statDelta = {};
   var pointSide = null;
   var opp = side==='home'?'away':'home';
@@ -1955,6 +4118,7 @@ function buildStatEntryData(side, action, player, key, label){
       break;
     case 'dig':
       if(key==='dig'){ statDelta.digs=1; }
+      else if(key==='digPt'){ statDelta.digs=1; pointSide=side; }
       else if(key==='digE'){ pointSide=opp; }
       break;
     case 'assist':
@@ -1967,7 +4131,9 @@ function buildStatEntryData(side, action, player, key, label){
   }
   var sideLabel = side==='home'?'Home':'Away';
   var pName = player ? ('#'+player.number+' '+(player.firstName?player.firstName[0]+'.':'')+(player.lastName?(' '+player.lastName):'')) : '#? Unknown';
-  var detailText = '('+sideLabel+') '+pName+', '+label+' (1st )';
+  var priorCount = player ? countPriorOccurrences(side, action, key, player.id, excludeEntryId) : 0;
+  var ordinal = ordinalSuffix(priorCount+1);
+  var detailText = '('+sideLabel+') '+pName+', '+label+' ('+ordinal+' )';
   return {statDelta: Object.keys(statDelta).length?statDelta:null, pointSide: pointSide, detailText: detailText};
 }
 
@@ -2063,7 +4229,7 @@ onTap(document.getElementById('editaction-done'), function(){
   var team = teamForSide(editingEntrySide);
   var player = editingEntryPlayerId ? team.players.find(function(p){return p.id===editingEntryPlayerId;}) : null;
   var label = subActionLabel(entry.action, editingEntryKey);
-  var data = buildStatEntryData(editingEntrySide, entry.action, player, editingEntryKey, label);
+  var data = buildStatEntryData(editingEntrySide, entry.action, player, editingEntryKey, label, editingEntryId);
   entry.side = editingEntrySide;
   entry.key = editingEntryKey;
   entry.label = label;
